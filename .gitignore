@@ -1,0 +1,89 @@
+# Created by https://www.toptal.com/developers/gitignore/api/windows,linux,macos,visualstudiocode
+# Edit at https://www.toptal.com/developers/gitignore?templates=windows,linux,macos,visualstudiocode
+
+### Linux ###
+*~
+
+# temporary files which can be created if a process crashes
+# indented interpretation of scp ~/.bashrc rcf@foo:.bashrc
+# http://www.linuxquestions.org/questions/linux-general-1/created-file-in-home-directory-with-weird-name-397552/
+core
+
+# Office Libre temporary files
+.~lock.*#
+
+# KDE directory preferences
+.directory
+
+# Linux trash folder which might appear on external disk
+.Trash-*
+
+# Manually created index files for mounting
+.xdg-volume-info
+.Trash-1000
+
+### macOS ###
+# General
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Icon must end with two \r
+Icon
+
+# Thumbnails
+._*
+
+# Files that might appear in the root of a volume
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+
+# Directories potentially created on remote AFP share
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.apdisk
+
+### VisualStudioCode ###
+.vscode/*
+!.vscode/settings.json
+!.vscode/tasks.json
+!.vscode/launch.json
+!.vscode/extensions.json
+*.code-workspace
+
+# Local History for Visual Studio Code
+.history/
+
+# Built Visual Studio Code Extensions
+*.vsix
+
+### Windows ###
+# Windows thumbnail cache files
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+
+# Folder config file
+[Dd]esktop.ini
+
+# Recycle Bin used on file shares
+$RECYCLE.BIN/
+
+# Windows Installer files
+*.cab
+*.msi
+*.msm
+*.msp
+
+# Windows shortcuts
+*.lnk
+
+# End of https://www.toptal.com/developers/gitignore/api/windows,linux,macos,visualstudiocode
