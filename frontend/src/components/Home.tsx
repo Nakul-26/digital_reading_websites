@@ -8,6 +8,7 @@ import {
   CardContent,
   Typography,
   CardActionArea,
+  CardMedia,
 } from '@mui/material';
 
 interface IWork {
@@ -15,6 +16,7 @@ interface IWork {
   title: string;
   type: 'manga' | 'novel' | 'comic';
   description?: string;
+  coverImage?: string;
   author: {
     username: string;
   };
@@ -45,6 +47,12 @@ const Home: React.FC = () => {
           <Grid item key={work._id} xs={12} sm={6} md={4}>
             <Card>
               <CardActionArea component={RouterLink} to={`/works/${work._id}`}>
+                <CardMedia
+                  component="img"
+                  height="200"
+                  image={work.coverImage ? `http://localhost:3000/uploads/${work.coverImage}` : 'https://via.placeholder.com/200x300'}
+                  alt={work.title}
+                />
                 <CardContent>
                   <Typography gutterBottom variant="h5" component="div">
                     {work.title}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import {
   Container,
@@ -8,7 +8,8 @@ import {
   Button,
   Grid,
 } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../AuthContext';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -17,6 +18,8 @@ const Register: React.FC = () => {
   });
 
   const { username, password } = formData;
+  const authContext = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -25,8 +28,9 @@ const Register: React.FC = () => {
     e.preventDefault();
     try {
       const res = await axios.post('http://localhost:3000/api/auth/register', formData);
-      console.log(res.data);
-      // TODO: Handle successful registration (e.g., redirect to login)
+      localStorage.setItem('token', res.data.token);
+      authContext?.checkAuth();
+      navigate('/upload-work');
     } catch (err: any) {
       console.error(err.response.data);
     }

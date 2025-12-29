@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useContext } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import { Container, createTheme, ThemeProvider, CssBaseline, Box } from '@mui/material';
 import Navbar from './components/Navbar';
@@ -10,7 +10,10 @@ import UploadChapter from './components/UploadChapter';
 import Login from './components/Login';
 import Register from './components/Register';
 import { ColorModeContext } from './ColorModeContext';
+import { AuthContext } from './AuthContext';
 import getTheme from './theme';
+import ProtectedRoute from './components/ProtectedRoute';
+import GuestRoute from './components/GuestRoute';
 import './App.css';
 
 const App: React.FC = () => {
@@ -25,6 +28,7 @@ const App: React.FC = () => {
   );
 
   const theme = useMemo(() => createTheme(getTheme(mode)), [mode]);
+  const authContext = useContext(AuthContext);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
@@ -33,6 +37,7 @@ const App: React.FC = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Navbar />
           <Container component="main" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
+            {/* Temporarily disable authentication for testing */}
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/works/:id" element={<WorkPage />} />
