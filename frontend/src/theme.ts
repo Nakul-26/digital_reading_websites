@@ -1,104 +1,146 @@
 import { alpha, createTheme } from '@mui/material/styles';
-import type { ThemeOptions } from '@mui/material';
+import type { ThemeOptions } from '@mui/material/styles';
 
 const getTheme = (mode: 'light' | 'dark'): ThemeOptions => ({
   palette: {
     mode,
+
     ...(mode === 'light'
       ? {
-          // palette values for light mode
           primary: {
-            main: '#1a73e8', // A slightly more vibrant blue
+            main: '#007bff', // A standard, clear blue
           },
           secondary: {
-            main: '#e91e63', // A modern pink
+            main: '#6c757d', // A neutral secondary color
           },
           background: {
-            default: '#f4f5f7', // A softer white
+            default: '#f8f9fa', // A very light grey
             paper: '#ffffff',
+          },
+          text: {
+            primary: '#212529',
+            secondary: '#6c757d',
           },
         }
       : {
-          // palette values for dark mode
           primary: {
-            main: '#66b2ff',
+            main: '#58a6ff', // A lighter blue for dark mode
           },
           secondary: {
-            main: '#f48fb1',
+            main: '#8b949e',
           },
           background: {
-            default: '#0f172a', // A deep blue-gray
-            paper: '#1e293b', // A slightly lighter blue-gray
+            default: '#0f1827ff', // GitHub dark mode background
+            paper: '#1f2e44ff',   // GitHub dark mode paper
+          },
+          text: {
+            primary: '#c9d1d9',
+            secondary: '#8b949e',
           },
         }),
   },
+
   typography: {
-    fontFamily: '"Inter", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: {
-      fontSize: '3rem',
-      fontWeight: 700,
-    },
-    h2: {
-      fontSize: '2.5rem',
-      fontWeight: 700,
-    },
-    h3: {
-      fontSize: '2rem',
-      fontWeight: 600,
-    },
-    h4: {
-      fontSize: '1.75rem',
-      fontWeight: 600,
-    },
-    h5: {
-      fontSize: '1.5rem',
-      fontWeight: 500,
-    },
-    h6: {
-      fontSize: '1.25rem',
-      fontWeight: 500,
-    },
-    body1: {
-      lineHeight: 1.6,
-    },
+    fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
+
+    h1: { fontSize: '2.25rem', fontWeight: 500 },
+    h2: { fontSize: '2rem', fontWeight: 500 },
+    h3: { fontSize: '1.75rem', fontWeight: 500 },
+    h4: { fontSize: '1.5rem', fontWeight: 500 },
+    h5: { fontSize: '1.25rem', fontWeight: 500 },
+    h6: { fontSize: '1rem', fontWeight: 500 },
   },
+
   shape: {
-    borderRadius: 8, // Rounded corners for components
+    borderRadius: 6, // Standard GitHub border radius
   },
+
   components: {
     MuiCssBaseline: {
       styleOverrides: {
         body: {
-          transition: 'background-color 0.3s ease-in-out, color 0.3s ease-in-out',
+          minHeight: '100vh',
+          transition: 'background-color 0.2s ease, color 0.2s ease',
         },
       },
     },
+
+    MuiAppBar: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          backgroundColor: theme.palette.background.paper,
+          borderBottom: `1px solid ${theme.palette.divider}`,
+          boxShadow: 'none',
+          color: theme.palette.text.primary,
+        }),
+      },
+    },
+
     MuiPaper: {
       styleOverrides: {
         root: {
-          transition: 'background-color 0.3s ease-in-out',
+          transition:
+            'background-color 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease',
         },
       },
     },
-    MuiButton: {
-      styleOverrides: {
-        root: {
-          textTransform: 'none', // More subtle button text
-          fontWeight: 600,
-        },
-      },
-    },
+
     MuiCard: {
       defaultProps: {
-        elevation: 0, // A flatter card design
+        elevation: 0,
       },
       styleOverrides: {
         root: ({ theme }) => ({
-          border: `1px solid ${alpha(theme.palette.divider, 0.1)}`,
-          transition: 'transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out',
+          border: `1px solid ${theme.palette.divider}`,
+          transition: 'transform 0.2s ease, box-shadow 0.2s ease',
           '&:hover': {
-            transform: 'translateY(-4px)',
-            boxShadow: `0 4px 20px ${alpha(theme.palette.primary.main, 0.1)}`,
+            borderColor: theme.palette.primary.main,
+            boxShadow: `0 0 8px ${alpha(theme.palette.primary.main, 0.1)}`,
+          },
+        }),
+      },
+    },
+
+    MuiButton: {
+      styleOverrides: {
+        root: {
+          textTransform: 'none',
+          fontWeight: 500,
+        },
+        containedPrimary: {
+          boxShadow: 'none',
+          '&:hover': {
+            boxShadow: 'none',
+          },
+        },
+      },
+    },
+
+    MuiLink: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          color: theme.palette.primary.main,
+          textDecoration: 'none',
+          '&:hover': {
+            textDecoration: 'underline',
+          },
+        }),
+      },
+    },
+
+    MuiTextField: {
+      styleOverrides: {
+        root: ({ theme }) => ({
+          '& .MuiOutlinedInput-root': {
+            '& fieldset': {
+              borderColor: theme.palette.divider,
+            },
+            '&:hover fieldset': {
+              borderColor: alpha(theme.palette.text.primary, 0.5),
+            },
+            '&.Mui-focused fieldset': {
+              borderColor: theme.palette.primary.main,
+            },
           },
         }),
       },
