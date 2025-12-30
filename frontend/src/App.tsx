@@ -1,6 +1,13 @@
 import React, { useState, useMemo, useContext } from 'react';
 import { Route, Routes } from 'react-router-dom';
-import { Container, createTheme, ThemeProvider, CssBaseline, Box } from '@mui/material';
+import {
+  Container,
+  createTheme,
+  ThemeProvider,
+  CssBaseline,
+  Box,
+  Typography,
+} from '@mui/material';
 import Navbar from './components/Navbar';
 import Home from './components/Home';
 import WorkPage from './components/WorkPage';
@@ -48,6 +55,33 @@ const App: React.FC = () => {
               <Route path="/register" element={<Register />} />
             </Routes>
           </Container>
+          <Box
+            component="footer"
+            sx={{
+              py: 3,
+              px: 2,
+              mt: 'auto',
+              backgroundColor: (theme) =>
+                theme.palette.mode === 'light'
+                  ? theme.palette.grey[200]
+                  : theme.palette.grey[800],
+            }}
+          >
+            <Container maxWidth="sm">
+              <Typography variant="body1" align="center">
+                Novel Website
+              </Typography>
+              <Typography
+                variant="body2"
+                color="text.secondary"
+                align="center"
+              >
+                {'Copyright © '}
+                {new Date().getFullYear()}
+                {'.'}
+              </Typography>
+            </Container>
+          </Box>
         </Box>
       </ThemeProvider>
     </ColorModeContext.Provider>
