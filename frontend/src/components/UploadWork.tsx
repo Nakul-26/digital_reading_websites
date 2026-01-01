@@ -129,7 +129,6 @@ const UploadWork: React.FC = () => {
         <Button
           type="submit"
           variant="contained"
-          color="primary"
           fullWidth
           sx={{ mt: 3 }}
         >

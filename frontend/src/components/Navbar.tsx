@@ -23,11 +23,6 @@ const Navbar = () => {
     <AppBar
       position="sticky"
       elevation={0}
-      sx={{
-        bgcolor: 'background.paper',
-        borderBottom: `1px solid ${theme.palette.divider}`,
-        color: 'text.primary',
-      }}
     >
       <Toolbar>
         <Box component={RouterLink} to="/" sx={{ display: 'flex', alignItems: 'center', textDecoration: 'none', color: 'inherit' }}>
@@ -38,13 +33,13 @@ const Navbar = () => {
         </Box>
         <Box sx={{ flexGrow: 1 }} />
         <Stack direction="row" spacing={1} alignItems="center">
-          <Button component={RouterLink} to="/">
+          <Button component={RouterLink} to="/" color="inherit">
             Home
           </Button>
-          <Button component={RouterLink} to="/login">
+          <Button component={RouterLink} to="/login" color="inherit">
             Login
           </Button>
-          <Button component={RouterLink} to="/register">
+          <Button component={RouterLink} to="/register" color="inherit">
             Register
           </Button>
           <Button

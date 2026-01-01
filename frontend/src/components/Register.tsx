@@ -51,7 +51,7 @@ const Register: React.FC = () => {
         </Typography>
         <Box component="form" onSubmit={onSubmit} sx={{ mt: 3 }}>
           <Grid container spacing={2}>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 required
                 fullWidth
@@ -63,7 +63,7 @@ const Register: React.FC = () => {
                 onChange={onChange}
               />
             </Grid>
-            <Grid item xs={12}>
+            <Grid size={{ xs: 12 }}>
               <TextField
                 required
                 fullWidth
@@ -84,11 +84,11 @@ const Register: React.FC = () => {
             sx={{ mt: 3, mb: 2 }}
           >
             Sign Up
-          </Button>
+          </Button> 
           <Grid container justifyContent="flex-end">
-            <Grid item>
+            <Grid>
               <RouterLink to="/login" style={{ textDecoration: 'none' }}>
-                <Typography variant="body2" color="primary">
+                <Typography variant="body2" color="secondary">
                   Already have an account? Sign in
                 </Typography>
               </RouterLink>

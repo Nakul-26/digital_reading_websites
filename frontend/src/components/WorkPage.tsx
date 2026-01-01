@@ -67,7 +67,7 @@ const WorkPage: React.FC = () => {
     <Container>
       <Paper sx={{ p: 4, mt: 4 }}>
         <Grid container spacing={4}>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Box
               component="img"
               sx={{
@@ -80,7 +80,7 @@ const WorkPage: React.FC = () => {
               alt={work.title}
             />
           </Grid>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Typography variant="h3" component="h1" gutterBottom>
               {work.title}
             </Typography>
@@ -109,7 +109,7 @@ const WorkPage: React.FC = () => {
           <List>
             {chapters.map((chapter, index) => (
               <React.Fragment key={chapter._id}>
-                <ListItem button component={RouterLink} to={`/chapters/${chapter._id}`}>
+                <ListItem button component={RouterLink} to={`/chapters/${chapter._id}`} sx={{ color: 'text.primary' }}>
                   <ListItemText
                     primary={`Chapter ${chapter.chapterNumber}: ${chapter.title}`}
                   />

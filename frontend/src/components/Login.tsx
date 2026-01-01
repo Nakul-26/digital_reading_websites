@@ -79,9 +79,9 @@ const Login: React.FC = () => {
             Sign In
           </Button>
           <Grid container>
-            <Grid item>
+            <Grid>
               <RouterLink to="/register" style={{ textDecoration: 'none' }}>
-                <Typography variant="body2" color="primary">
+                <Typography variant="body2" color="secondary">
                   {"Don't have an account? Sign Up"}
                 </Typography>
               </RouterLink>

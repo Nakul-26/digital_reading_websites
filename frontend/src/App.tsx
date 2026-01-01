@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo } from 'react'; // , useContext
 import { Route, Routes } from 'react-router-dom';
 import {
   Container,
@@ -9,6 +9,7 @@ import {
   Typography,
 } from '@mui/material';
 import Navbar from './components/Navbar';
+import Footer from './components/Footer';
 import Home from './components/Home';
 import WorkPage from './components/WorkPage';
 import ChapterReader from './components/ChapterReader';
@@ -17,10 +18,10 @@ import UploadChapter from './components/UploadChapter';
 import Login from './components/Login';
 import Register from './components/Register';
 import { ColorModeContext } from './ColorModeContext';
-import { AuthContext } from './AuthContext';
+// import { AuthContext } from './AuthContext';
 import getTheme from './theme';
-import ProtectedRoute from './components/ProtectedRoute';
-import GuestRoute from './components/GuestRoute';
+// import ProtectedRoute from './components/ProtectedRoute';
+// import GuestRoute from './components/GuestRoute';
 import './App.css';
 
 const App: React.FC = () => {
@@ -35,7 +36,7 @@ const App: React.FC = () => {
   );
 
   const theme = useMemo(() => createTheme(getTheme(mode)), [mode]);
-  const authContext = useContext(AuthContext);
+  // const authContext = useContext(AuthContext);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
@@ -55,33 +56,7 @@ const App: React.FC = () => {
               <Route path="/register" element={<Register />} />
             </Routes>
           </Container>
-          <Box
-            component="footer"
-            sx={{
-              py: 3,
-              px: 2,
-              mt: 'auto',
-              backgroundColor: (theme) =>
-                theme.palette.mode === 'light'
-                  ? theme.palette.grey[200]
-                  : theme.palette.grey[800],
-            }}
-          >
-            <Container maxWidth="sm">
-              <Typography variant="body1" align="center">
-                Novel Website
-              </Typography>
-              <Typography
-                variant="body2"
-                color="text.secondary"
-                align="center"
-              >
-                {'Copyright © '}
-                {new Date().getFullYear()}
-                {'.'}
-              </Typography>
-            </Container>
-          </Box>
+          <Footer />
         </Box>
       </ThemeProvider>
     </ColorModeContext.Provider>

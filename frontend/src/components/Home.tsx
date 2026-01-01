@@ -43,14 +43,14 @@ const Home: React.FC = () => {
   return (
     <Box>
       {/* Welcome Section */}
-      <Paper sx={{ p: 4, mb: 4, bgcolor: 'background.paper', borderRadius: 2 }}>
+      <Box sx={{ p: 4, mb: 4 }}>
         <Typography variant="h3" component="h1" gutterBottom>
           Welcome to Novel Website
         </Typography>
         <Typography variant="h6" color="text.secondary">
           Discover, read, and share amazing stories from around the world.
         </Typography>
-      </Paper>
+      </Box>
 
       {/* Featured Work */}
       {featuredWork && (
@@ -61,7 +61,7 @@ const Home: React.FC = () => {
           <Card raised>
             <CardActionArea component={RouterLink} to={`/works/${featuredWork._id}`}>
               <Grid container>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <CardMedia
                     component="img"
                     sx={{
@@ -77,7 +77,7 @@ const Home: React.FC = () => {
                     alt={featuredWork.title}
                   />
                 </Grid>
-                <Grid item xs={12} md={8}>
+                <Grid size={{ xs: 12, md: 8 }}>
                   <CardContent>
                     <Typography gutterBottom variant="h4" component="div">
                       {featuredWork.title}
@@ -102,7 +102,7 @@ const Home: React.FC = () => {
       </Typography>
       <Grid container spacing={3}>
         {works.slice(1).map((work) => (
-          <Grid item key={work._id} xs={12} sm={6} md={4} lg={3}>
+          <Grid key={work._id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
             <Card raised>
               <CardActionArea component={RouterLink} to={`/works/${work._id}`}>
                 <CardMedia
