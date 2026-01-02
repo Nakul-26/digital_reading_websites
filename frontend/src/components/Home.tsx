@@ -9,7 +9,6 @@ import {
   Typography,
   CardActionArea,
   CardMedia,
-  Paper,
 } from '@mui/material';
 
 interface IWork {
@@ -58,16 +57,34 @@ const Home: React.FC = () => {
           <Typography variant="h4" component="h2" gutterBottom>
             Featured Work
           </Typography>
-          <Card raised>
-            <CardActionArea component={RouterLink} to={`/works/${featuredWork._id}`}>
+          <Card
+            sx={{
+              minWidth: 275,
+              borderRadius: '16px',
+              boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+              transition: 'box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out',
+              '&:hover': {
+                boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+                transform: 'scale(1.02)',
+              },
+            }}
+          >
+            <CardActionArea
+              component={RouterLink}
+              to={`/works/${featuredWork._id}`}
+              sx={{ borderRadius: '16px' }}
+            >
               <Grid container>
-                <Grid size={{ xs: 12, md: 4 }}>
+                <Grid item xs={12} md={4}>
                   <CardMedia
                     component="img"
                     sx={{
                       width: '100%',
                       height: 300,
                       objectFit: 'cover',
+                      borderTopLeftRadius: '16px',
+                      borderBottomLeftRadius: { xs: 0, md: '16px' },
+                      borderTopRightRadius: { xs: '16px', md: 0 },
                     }}
                     image={
                       featuredWork.coverImage
@@ -77,15 +94,25 @@ const Home: React.FC = () => {
                     alt={featuredWork.title}
                   />
                 </Grid>
-                <Grid size={{ xs: 12, md: 8 }}>
-                  <CardContent>
+                <Grid item xs={12} md={8}>
+                  <CardContent sx={{ p: 2.5 }}>
                     <Typography gutterBottom variant="h4" component="div">
                       {featuredWork.title}
                     </Typography>
                     <Typography variant="h6" color="text.secondary" gutterBottom>
                       by {featuredWork.author.username}
                     </Typography>
-                    <Typography variant="body1" sx={{ mt: 2 }} noWrap>
+                    <Typography
+                      variant="body1"
+                      sx={{
+                        mt: 2,
+                        display: '-webkit-box',
+                        WebkitLineClamp: 3,
+                        WebkitBoxOrient: 'vertical',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                      }}
+                    >
                       {featuredWork.description}
                     </Typography>
                   </CardContent>
@@ -102,12 +129,27 @@ const Home: React.FC = () => {
       </Typography>
       <Grid container spacing={3}>
         {works.slice(1).map((work) => (
-          <Grid key={work._id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
-            <Card raised>
-              <CardActionArea component={RouterLink} to={`/works/${work._id}`}>
+          <Grid key={work._id} item xs={12} sm={6} md={4} lg={3}>
+            <Card
+              sx={{
+                minWidth: 275,
+                borderRadius: '16px',
+                boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                transition: 'box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out',
+                '&:hover': {
+                  boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+                  transform: 'scale(1.02)',
+                },
+              }}
+            >
+              <CardActionArea
+                component={RouterLink}
+                to={`/works/${work._id}`}
+                sx={{ borderRadius: '16px' }}
+              >
                 <CardMedia
                   component="img"
-                  sx={{ height: 200, objectFit: 'cover' }}
+                  sx={{ height: 200, objectFit: 'cover', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}
                   image={
                     work.coverImage
                       ? `http://localhost:3000/uploads/${work.coverImage}`
@@ -115,7 +157,7 @@ const Home: React.FC = () => {
                   }
                   alt={work.title}
                 />
-                <CardContent>
+                <CardContent sx={{ p: 2 }}>
                   <Typography gutterBottom variant="h6" component="div" noWrap>
                     {work.title}
                   </Typography>
@@ -127,7 +169,9 @@ const Home: React.FC = () => {
                     color="text.secondary"
                     sx={{
                       mt: 1,
-                      whiteSpace: 'nowrap',
+                      display: '-webkit-box',
+                      WebkitLineClamp: 2,
+                      WebkitBoxOrient: 'vertical',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                     }}

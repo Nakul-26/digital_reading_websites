@@ -150,4 +150,4 @@ const getTheme = (mode: 'light' | 'dark'): Theme => createTheme({
   },
 });
 
-export default getTheme;
+export { getTheme };

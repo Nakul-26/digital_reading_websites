@@ -1,12 +1,9 @@
 import React, { useState, useMemo } from 'react'; // , useContext
 import { Route, Routes } from 'react-router-dom';
 import {
-  Container,
-  createTheme,
-  ThemeProvider,
   CssBaseline,
   Box,
-  Typography,
+  Container,
 } from '@mui/material';
 import Navbar from './components/Navbar';
 import Footer from './components/Footer';
@@ -19,7 +16,8 @@ import Login from './components/Login';
 import Register from './components/Register';
 import { ColorModeContext } from './ColorModeContext';
 // import { AuthContext } from './AuthContext';
-import getTheme from './theme';
+import { getTheme } from './theme';
+import { ThemeProvider, createTheme } from '@mui/material/styles';
 // import ProtectedRoute from './components/ProtectedRoute';
 // import GuestRoute from './components/GuestRoute';
 import './App.css';
