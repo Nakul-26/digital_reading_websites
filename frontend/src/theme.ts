@@ -121,6 +121,9 @@ const getTheme = (mode: 'light' | 'dark'): Theme => createTheme({
             '&:hover fieldset': {
               borderColor: theme.palette.text.secondary,
             },
+            '&.Mui-focused fieldset': {
+              borderColor: theme.palette.mode === 'dark' ? '#ffffff' : 'inherit',
+            },
             '& input:-webkit-autofill': {
               WebkitBoxShadow: `0 0 0 1000px ${theme.palette.background.paper} inset`, // Set background to paper color
               WebkitTextFillColor: theme.palette.text.primary, // Set text color to primary
@@ -142,7 +145,11 @@ const getTheme = (mode: 'light' | 'dark'): Theme => createTheme({
               WebkitTextFillColor: theme.palette.text.primary,
               caretColor: theme.palette.text.primary,
             },
-
+          },
+          '& .MuiInputLabel-root': {
+            '&.Mui-focused': {
+              color: theme.palette.mode === 'dark' ? '#ffffff' : 'inherit',
+            },
           },
         }),
       },

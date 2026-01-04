@@ -27,8 +27,10 @@ const Login: React.FC = () => {
       const res = await axios.post('http://localhost:3000/api/auth/login', formData);
       console.log(res.data);
       // TODO: Handle successful login (e.g., save token, redirect to home)
-    } catch (err: any) {
-      console.error(err.response.data);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error(err.response?.data);
+      }
     }
   };
 

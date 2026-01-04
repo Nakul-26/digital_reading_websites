@@ -31,8 +31,10 @@ const Register: React.FC = () => {
       localStorage.setItem('token', res.data.token);
       authContext?.checkAuth();
       navigate('/upload-work');
-    } catch (err: any) {
-      console.error(err.response.data);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        console.error(err.response?.data);
+      }
     }
   };
 

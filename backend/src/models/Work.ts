@@ -2,33 +2,57 @@ import mongoose, { Document, Schema } from 'mongoose';
 
 export interface IWork extends Document {
   title: string;
-  type: 'manga' | 'novel' | 'comic';
+  type: 'novel' | 'manga' | 'comic';
+  authorId: Schema.Types.ObjectId;
   description?: string;
-  coverImage?: string;
-  author: Schema.Types.ObjectId;
+  coverImageUrl?: string;
+  genres?: string[];
+  tags?: string[];
+  status: 'ongoing' | 'completed' | 'hiatus'; // reader-facing
+  language?: string;
+  isPublished: boolean; // visibility control
+  contentWarnings?: string[];
+  createdAt: Date;
+  updatedAt: Date;
 }
 
-const WorkSchema = new Schema({
-  title: {
-    type: String,
-    required: true,
+const WorkSchema = new Schema(
+  {
+    title: {
+      type: String,
+      required: true,
+    },
+    type: {
+      type: String,
+      enum: ['novel', 'manga', 'comic'],
+      required: true,
+    },
+    authorId: {
+      type: Schema.Types.ObjectId,
+      ref: 'User',
+      required: true,
+    },
+    description: String,
+    coverImageUrl: String,
+    genres: [String],
+    tags: [String],
+    status: {
+      type: String,
+      enum: ['ongoing', 'completed', 'hiatus'],
+      default: 'ongoing',
+    },
+    language: String,
+    isPublished: {
+      type: Boolean,
+      default: false,
+    },
+    contentWarnings: [String],
   },
-  type: {
-    type: String,
-    enum: ['manga', 'novel', 'comic'],
-    required: true,
-  },
-  description: {
-    type: String,
-  },
-  coverImage: {
-    type: String,
-  },
-  author: {
-    type: Schema.Types.ObjectId,
-    ref: 'User',
-    required: true,
-  },
-});
+  { timestamps: true }
+);
+
+WorkSchema.index({ title: 1 });
+WorkSchema.index({ authorId: 1 });
+WorkSchema.index({ isPublished: 1 });
 
 export default mongoose.model<IWork>('Work', WorkSchema);
