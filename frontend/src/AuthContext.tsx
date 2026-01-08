@@ -1,9 +1,15 @@
 import React, { createContext, useState, useEffect, ReactNode } from 'react';
-import axios from 'axios';
+import { api } from './api';
+
+interface IUser {
+  _id: string;
+  username: string;
+}
 
 interface AuthContextType {
   isAuthenticated: boolean;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
+  user: IUser | null;
   checkAuth: () => void;
 }
 
@@ -11,14 +17,25 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [user, setUser] = useState<IUser | null>(null);
 
-  const checkAuth = () => {
+  const checkAuth = async () => {
     const token = localStorage.getItem('token');
     if (token) {
-      axios.defaults.headers.common['x-auth-token'] = token;
-      setIsAuthenticated(true);
+      api.defaults.headers.common['x-auth-token'] = token;
+      try {
+        const res = await api.get('/api/auth/me');
+        setUser(res.data);
+        setIsAuthenticated(true);
+      } catch (err) {
+        localStorage.removeItem('token');
+        delete api.defaults.headers.common['x-auth-token'];
+        setUser(null);
+        setIsAuthenticated(false);
+      }
     } else {
-      delete axios.defaults.headers.common['x-auth-token'];
+      delete api.defaults.headers.common['x-auth-token'];
+      setUser(null);
       setIsAuthenticated(false);
     }
   };
@@ -28,7 +45,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, checkAuth }}>
+    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, user, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

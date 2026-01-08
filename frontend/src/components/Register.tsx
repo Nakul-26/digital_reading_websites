@@ -10,6 +10,7 @@ import {
 } from '@mui/material';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
+import { api } from '../api';
 
 const Register: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -21,15 +22,16 @@ const Register: React.FC = () => {
   const authContext = useContext(AuthContext);
   const navigate = useNavigate();
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement>) =>
+  const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:3000/api/auth/register', formData);
+      const res = await api.post('/api/auth/register', formData);
       localStorage.setItem('token', res.data.token);
-      authContext?.checkAuth();
+      await authContext?.checkAuth();
       navigate('/upload-work');
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
@@ -53,7 +55,7 @@ const Register: React.FC = () => {
         </Typography>
         <Box component="form" onSubmit={onSubmit} sx={{ mt: 3 }}>
           <Grid container spacing={2}>
-            <Grid size={{ xs: 12 }}>
+            <Grid item xs={12}>
               <TextField
                 required
                 fullWidth
@@ -65,7 +67,7 @@ const Register: React.FC = () => {
                 onChange={onChange}
               />
             </Grid>
-            <Grid size={{ xs: 12 }}>
+            <Grid item xs={12}>
               <TextField
                 required
                 fullWidth
@@ -88,7 +90,7 @@ const Register: React.FC = () => {
             Sign Up
           </Button> 
           <Grid container justifyContent="flex-end">
-            <Grid>
+            <Grid item>
               <RouterLink to="/login" style={{ textDecoration: 'none' }}>
                 <Typography variant="body2" color="secondary">
                   Already have an account? Sign in

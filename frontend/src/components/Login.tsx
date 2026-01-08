@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useContext } from 'react';
 import axios from 'axios';
 import {
   Container,
@@ -8,13 +8,17 @@ import {
   Button,
   Grid,
 } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { AuthContext } from '../AuthContext';
+import { api } from '../api';
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
     username: '',
     password: '',
   });
+  const authContext = useContext(AuthContext);
+  const navigate = useNavigate();
 
   const { username, password } = formData;
 
@@ -24,9 +28,12 @@ const Login: React.FC = () => {
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      const res = await axios.post('http://localhost:3000/api/auth/login', formData);
-      console.log(res.data);
-      // TODO: Handle successful login (e.g., save token, redirect to home)
+      const res = await api.post('/api/auth/login', formData);
+      localStorage.setItem('token', res.data.token);
+      if (authContext) {
+        await authContext.checkAuth();
+      }
+      navigate('/');
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
         console.error(err.response?.data);
@@ -81,7 +88,7 @@ const Login: React.FC = () => {
             Sign In
           </Button>
           <Grid container>
-            <Grid>
+            <Grid item>
               <RouterLink to="/register" style={{ textDecoration: 'none' }}>
                 <Typography variant="body2" color="secondary">
                   {"Don't have an account? Sign Up"}

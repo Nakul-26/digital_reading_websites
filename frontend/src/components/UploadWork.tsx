@@ -1,5 +1,4 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import {
   Container,
   Box,
@@ -12,6 +11,7 @@ import {
   InputLabel,
   FormHelperText,
 } from '@mui/material';
+import { api } from '../api';
 
 const UploadWork: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -45,7 +45,7 @@ const UploadWork: React.FC = () => {
       const uploadData = new FormData();
       uploadData.append('file', coverImage);
       try {
-        const res = await axios.post('http://localhost:3000/api/upload', uploadData, {
+        const res = await api.post('/api/upload', uploadData, {
           headers: {
             'Content-Type': 'multipart/form-data',
           },
@@ -62,7 +62,7 @@ const UploadWork: React.FC = () => {
       title,
       type,
       description,
-      coverImage: coverImageUrl,
+      coverImageUrl: coverImageUrl,
     };
 
     try {
@@ -73,7 +73,7 @@ const UploadWork: React.FC = () => {
           'x-auth-token': token,
         },
       };
-      const res = await axios.post('http://localhost:3000/api/works', workData, config);
+      const res = await api.post('/api/works', workData, config);
       console.log(res.data);
       setMessage('Work created successfully!');
     } catch (err: any) {

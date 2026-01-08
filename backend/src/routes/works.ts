@@ -19,7 +19,7 @@ interface AuthRequest extends Request {
 router.post(
   '/',
   [
-    // auth, // Temporarily disabled for testing
+    auth,
     [
       check('title', 'Title is required').not().isEmpty(),
       check('type', 'Type is required').isIn(['manga', 'novel', 'comic']),
@@ -31,21 +31,15 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { title, type, description, coverImage } = req.body;
+    const { title, type, description, coverImageUrl } = req.body;
 
     try {
-      let user = await User.findOne();
-      if (!user) {
-        user = new User({ username: 'testuser', password: 'password' });
-        await user.save();
-      }
-      
       const newWork: IWork = new Work({
         title,
         type,
         description,
-        coverImage,
-        author: user.id, // Use dummy user
+        coverImageUrl,
+        author: req.user!.id,
       });
 
       const work = await newWork.save();
@@ -63,7 +57,20 @@ router.post(
 // @access  Public
 router.get('/', async (req, res) => {
   try {
-    const works = await Work.find().populate('author', ['username']);
+    const works = await Work.find().populate('author', ['_id', 'username']);
+    res.json(works);
+  } catch (err: any) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+// @route   GET /works/my-works
+// @desc    Get current user's works
+// @access  Private
+router.get('/my-works', auth, async (req: AuthRequest, res: any) => {
+  try {
+    const works = await Work.find({ author: req.user!.id }).populate('author', ['_id', 'username']);
     res.json(works);
   } catch (err: any) {
     console.error(err.message);
@@ -76,7 +83,7 @@ router.get('/', async (req, res) => {
 // @access  Public
 router.get('/:id', async (req, res) => {
   try {
-    const work = await Work.findById(req.params.id).populate('author', ['username']);
+    const work = await Work.findById(req.params.id).populate('author', ['_id', 'username']);
     if (!work) {
       return res.status(404).json({ msg: 'Work not found' });
     }
@@ -109,7 +116,7 @@ router.get('/:workId/chapters', async (req, res) => {
 router.post(
   '/:workId/chapters',
   [
-    // auth, // Temporarily disabled for testing
+    auth,
     [
       check('chapterNumber', 'Chapter number is required').not().isEmpty().isNumeric(),
       check('title', 'Title is required').not().isEmpty(),
@@ -132,9 +139,9 @@ router.post(
       }
 
       // Check if the user owns the work
-      // if (work.author.toString() !== req.user!.id) {
-      //   return res.status(401).json({ msg: 'User not authorized' });
-      // }
+      if (work.author.toString() !== req.user!.id) {
+        return res.status(401).json({ msg: 'User not authorized' });
+      }
 
       const newChapter: IChapter = new Chapter({
         work: workId,
@@ -151,5 +158,70 @@ router.post(
     }
   }
 );
+
+// @route   PUT /works/:id
+// @desc    Update a work
+// @access  Private
+router.put('/:id', auth, async (req: AuthRequest, res: any) => {
+  const { title, description, coverImageUrl } = req.body;
+
+  // Build work object
+  const workFields: any = {};
+  if (title) workFields.title = title;
+  if (description) workFields.description = description;
+  if (coverImageUrl) workFields.coverImageUrl = coverImageUrl;
+
+  try {
+    let work = await Work.findById(req.params.id);
+
+    if (!work) return res.status(404).json({ msg: 'Work not found' });
+
+    // Make sure user owns work
+    if (work.author.toString() !== req.user!.id) {
+      return res.status(401).json({ msg: 'Not authorized' });
+    }
+
+    work = await Work.findByIdAndUpdate(
+      req.params.id,
+      { $set: workFields },
+      { new: true }
+    );
+
+    res.json(work);
+  } catch (err: any) {
+    console.error('Error updating work:', err.message);
+    res.status(500).send('Server Error');
+  }
+});
+
+
+// @route   DELETE /works/:id
+// @desc    Delete a work
+// @access  Private
+router.delete('/:id', auth, async (req: AuthRequest, res: any) => {
+  try {
+    const work = await Work.findById(req.params.id);
+
+    if (!work) {
+      return res.status(404).json({ msg: 'Work not found' });
+    }
+
+    // Check user
+    if (work.author.toString() !== req.user!.id) {
+      return res.status(401).json({ msg: 'User not authorized' });
+    }
+
+    await Chapter.deleteMany({ work: req.params.id });
+    await work.deleteOne();
+
+    res.json({ msg: 'Work removed' });
+  } catch (err: any) {
+    console.error(err.message);
+    if (err.kind === 'ObjectId') {
+      return res.status(404).json({ msg: 'Work not found' });
+    }
+    res.status(500).send('Server Error');
+  }
+});
 
 export default router;

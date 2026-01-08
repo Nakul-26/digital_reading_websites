@@ -3,7 +3,7 @@ import mongoose, { Document, Schema } from 'mongoose';
 export interface IWork extends Document {
   title: string;
   type: 'novel' | 'manga' | 'comic';
-  authorId: Schema.Types.ObjectId;
+  author: Schema.Types.ObjectId;
   description?: string;
   coverImageUrl?: string;
   genres?: string[];
@@ -27,7 +27,7 @@ const WorkSchema = new Schema(
       enum: ['novel', 'manga', 'comic'],
       required: true,
     },
-    authorId: {
+    author: {
       type: Schema.Types.ObjectId,
       ref: 'User',
       required: true,
@@ -52,7 +52,7 @@ const WorkSchema = new Schema(
 );
 
 WorkSchema.index({ title: 1 });
-WorkSchema.index({ authorId: 1 });
+WorkSchema.index({ author: 1 });
 WorkSchema.index({ isPublished: 1 });
 
 export default mongoose.model<IWork>('Work', WorkSchema);

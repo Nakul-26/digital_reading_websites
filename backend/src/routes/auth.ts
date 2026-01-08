@@ -3,6 +3,7 @@ import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import dotenv from 'dotenv';
+import auth from '../middleware/auth';
 
 dotenv.config();
 
@@ -79,6 +80,17 @@ router.post('/login', async (req, res) => {
   } catch (err: any) {
     console.error(err.message);
     res.status(500).send('Server error');
+  }
+});
+
+// Get logged in user
+router.get('/me', auth, async (req: any, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    res.json(user);
+  } catch (err: any) {
+    console.error(err.message);
+    res.status(500).send('Server Error');
   }
 });
 

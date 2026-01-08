@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Link as RouterLink } from 'react-router-dom';
 import {
   Box,
@@ -10,13 +9,14 @@ import {
   CardActionArea,
   CardMedia,
 } from '@mui/material';
+import { api } from '../api';
 
 interface IWork {
   _id: string;
   title: string;
   type: 'manga' | 'novel' | 'comic';
   description?: string;
-  coverImage?: string;
+  coverImageUrl?: string;
   author: {
     username: string;
   };
@@ -24,20 +24,32 @@ interface IWork {
 
 const Home: React.FC = () => {
   const [works, setWorks] = useState<IWork[]>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchWorks = async () => {
       try {
-        const res = await axios.get('http://localhost:3000/api/works');
+        const res = await api.get('/api/works');
         setWorks(res.data);
       } catch (err) {
         console.error(err);
+      } finally {
+        setLoading(false);
       }
     };
     fetchWorks();
   }, []);
 
+  if (loading) {
+    return <Typography>Loading works...</Typography>;
+  }
+
+  if (works.length === 0) {
+    return <Typography>No works published yet.</Typography>;
+  }
+
   const featuredWork = works.length > 0 ? works[0] : null;
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   return (
     <Box>
@@ -75,7 +87,7 @@ const Home: React.FC = () => {
               sx={{ borderRadius: '16px' }}
             >
               <Grid container>
-                <Grid item xs={12} md={4}>
+                <Grid xs={12} md={4}>
                   <CardMedia
                     component="img"
                     sx={{
@@ -87,8 +99,8 @@ const Home: React.FC = () => {
                       borderTopRightRadius: { xs: '16px', md: 0 },
                     }}
                     image={
-                      featuredWork.coverImage
-                        ? `http://localhost:3000/uploads/${featuredWork.coverImage}`
+                      featuredWork.coverImageUrl
+                        ? `${apiUrl}/uploads/${featuredWork.coverImageUrl}`
                         : 'https://via.placeholder.com/400x600'
                     }
                     alt={featuredWork.title}
@@ -151,8 +163,8 @@ const Home: React.FC = () => {
                   component="img"
                   sx={{ height: 200, objectFit: 'cover', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}
                   image={
-                    work.coverImage
-                      ? `http://localhost:3000/uploads/${work.coverImage}`
+                    work.coverImageUrl
+                      ? `${apiUrl}/uploads/${work.coverImageUrl}`
                       : 'https://via.placeholder.com/200x300'
                   }
                   alt={work.title}

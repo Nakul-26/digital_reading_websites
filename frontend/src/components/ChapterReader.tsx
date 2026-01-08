@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useParams } from 'react-router-dom';
 import { Container, Typography, Paper, Box } from '@mui/material';
+import { api } from '../api';
 
 interface IChapter {
   _id: string;
@@ -20,7 +20,7 @@ const ChapterReader: React.FC = () => {
   useEffect(() => {
     const fetchChapter = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/api/chapters/${id}`);
+        const res = await api.get(`/api/chapters/${id}`);
         setChapter(res.data);
       } catch (err) {
         console.error(err);
@@ -34,6 +34,7 @@ const ChapterReader: React.FC = () => {
   }
 
   const isNovel = chapter.work.type === 'novel';
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   return (
     <Container maxWidth={isNovel ? 'md' : 'lg'}>
@@ -51,7 +52,7 @@ const ChapterReader: React.FC = () => {
               <Box
                 key={index}
                 component="img"
-                src={`http://localhost:3000/uploads/${imageUrl}`}
+                src={`${apiUrl}/uploads/${imageUrl}`}
                 alt={`Page ${index + 1}`}
                 sx={{
                   display: 'block',

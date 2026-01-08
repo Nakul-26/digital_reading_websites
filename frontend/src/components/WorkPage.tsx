@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link as RouterLink } from 'react-router-dom';
 import {
   Container,
@@ -12,15 +11,27 @@ import {
   Divider,
   Paper,
   Box,
+  ListItemButton,
+  IconButton,
+  Dialog,
+  DialogActions,
+  DialogContent,
+  DialogContentText,
+  DialogTitle,
 } from '@mui/material';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/Delete';
+import { AuthContext } from '../AuthContext';
+import { api } from '../api';
 
 interface IWork {
   _id: string;
   title: string;
   type: 'manga' | 'novel' | 'comic';
   description?: string;
-  coverImage?: string;
+  coverImageUrl?: string;
   author: {
+    _id: string;
     username: string;
   };
 }
@@ -35,11 +46,14 @@ const WorkPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [work, setWork] = useState<IWork | null>(null);
   const [chapters, setChapters] = useState<IChapter[]>([]);
+  const [open, setOpen] = useState(false);
+  const [selectedChapter, setSelectedChapter] = useState<IChapter | null>(null);
+  const authContext = useContext(AuthContext);
 
   useEffect(() => {
     const fetchWork = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/api/works/${id}`);
+        const res = await api.get(`/api/works/${id}`);
         setWork(res.data);
       } catch (err) {
         console.error(err);
@@ -48,7 +62,7 @@ const WorkPage: React.FC = () => {
 
     const fetchChapters = async () => {
       try {
-        const res = await axios.get(`http://localhost:3000/api/works/${id}/chapters`);
+        const res = await api.get(`/api/works/${id}/chapters`);
         setChapters(res.data);
       } catch (err) {
         console.error(err);
@@ -59,15 +73,44 @@ const WorkPage: React.FC = () => {
     fetchChapters();
   }, [id]);
 
+  const handleClickOpen = (chapter: IChapter) => {
+    setSelectedChapter(chapter);
+    setOpen(true);
+  };
+
+  const handleClose = () => {
+    setOpen(false);
+    setSelectedChapter(null);
+  };
+
+  const handleDelete = async () => {
+    if (selectedChapter) {
+      try {
+        await api.delete(`/api/chapters/${selectedChapter._id}`);
+        setChapters(chapters.filter((chapter) => chapter._id !== selectedChapter._id));
+        handleClose();
+      } catch (err) {
+        console.error(err);
+      }
+    }
+  };
+
   if (!work) {
     return <Typography>Loading...</Typography>;
   }
+
+  const isAuthor =
+    authContext?.user &&
+    work.author &&
+    authContext.user._id === work.author._id;
+
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   return (
     <Container>
       <Paper sx={{ p: 4, mt: 4 }}>
         <Grid container spacing={4}>
-          <Grid size={{ xs: 12, md: 4 }}>
+          <Grid item xs={12} md={4}>
             <Box
               component="img"
               sx={{
@@ -76,11 +119,11 @@ const WorkPage: React.FC = () => {
                 maxHeight: 500,
                 objectFit: 'cover',
               }}
-              src={work.coverImage ? `http://localhost:3000/uploads/${work.coverImage}` : 'https://via.placeholder.com/300x450'}
+              src={work.coverImageUrl ? `${apiUrl}/uploads/${work.coverImageUrl}` : 'https://via.placeholder.com/300x450'}
               alt={work.title}
             />
           </Grid>
-          <Grid size={{ xs: 12, md: 8 }}>
+          <Grid item xs={12} md={8}>
             <Typography variant="h3" component="h1" gutterBottom>
               {work.title}
             </Typography>
@@ -90,13 +133,15 @@ const WorkPage: React.FC = () => {
             <Typography variant="body1" paragraph>
               {work.description}
             </Typography>
-            <Button
-              variant="contained"
-              component={RouterLink}
-              to={`/upload-chapter?workId=${work._id}`}
-            >
-              Upload Chapter
-            </Button>
+            {isAuthor && (
+              <Button
+                variant="contained"
+                component={RouterLink}
+                to={`/upload-chapter?workId=${work._id}`}
+              >
+                Upload Chapter
+              </Button>
+            )}
           </Grid>
         </Grid>
       </Paper>
@@ -105,21 +150,76 @@ const WorkPage: React.FC = () => {
         <Typography variant="h4" component="h2" gutterBottom>
           Chapters
         </Typography>
+
         <Paper>
-          <List>
+          <List disablePadding>
+            {chapters.length === 0 && (
+              <Typography color="text.secondary" sx={{ p: 3 }}>
+                No chapters published yet.
+              </Typography>
+            )}
             {chapters.map((chapter, index) => (
               <React.Fragment key={chapter._id}>
-                <ListItem button component={RouterLink} to={`/chapters/${chapter._id}`} sx={{ color: 'text.primary' }}>
-                  <ListItemText
-                    primary={`Chapter ${chapter.chapterNumber}: ${chapter.title}`}
-                  />
+                <ListItem
+                  disablePadding
+                  secondaryAction={
+                    isAuthor && (
+                      <>
+                        <IconButton edge="end" aria-label="edit" component={RouterLink} to={`/edit-chapter/${chapter._id}`}>
+                          <EditIcon />
+                        </IconButton>
+                        <IconButton edge="end" aria-label="delete" onClick={() => handleClickOpen(chapter)}>
+                          <DeleteIcon />
+                        </IconButton>
+                      </>
+                    )
+                  }
+                >
+                  <ListItemButton
+                    component={RouterLink}
+                    to={`/chapters/${chapter._id}`}
+                    sx={{
+                      px: 3,
+                      py: 1.5,
+                      '&:hover': {
+                        backgroundColor: 'action.hover',
+                      },
+                    }}
+                  >
+                    <ListItemText
+                      primary={chapter.title}
+                      secondary={`Chapter ${chapter.chapterNumber}`}
+                    />
+                  </ListItemButton>
                 </ListItem>
+
                 {index < chapters.length - 1 && <Divider />}
               </React.Fragment>
             ))}
           </List>
         </Paper>
       </Box>
+      <Dialog
+        open={open}
+        onClose={handleClose}
+        aria-labelledby="alert-dialog-title"
+        aria-describedby="alert-dialog-description"
+      >
+        <DialogTitle id="alert-dialog-title">
+          {"Delete Chapter?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-description">
+            Are you sure you want to delete this chapter? This action cannot be undone.
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose}>Cancel</Button>
+          <Button onClick={handleDelete} color="error" autoFocus>
+            Delete
+          </Button>
+        </DialogActions>
+      </Dialog>
     </Container>
   );
 };

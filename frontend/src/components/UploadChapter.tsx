@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useLocation } from 'react-router-dom';
 import {
   Container,
@@ -9,6 +8,7 @@ import {
   Button,
   FormHelperText,
 } from '@mui/material';
+import { api } from '../api';
 
 const UploadChapter: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -28,7 +28,7 @@ const UploadChapter: React.FC = () => {
     if (id) {
       setWorkId(id);
       // Fetch work type to conditionally show content/upload field
-      axios.get(`http://localhost:3000/api/works/${id}`)
+      api.get(`/api/works/${id}`)
         .then(res => setWorkType(res.data.type))
         .catch(err => console.error('Failed to fetch work type', err));
     }
@@ -58,7 +58,7 @@ const UploadChapter: React.FC = () => {
             uploadedFiles.append('files', files[i]);
         }
         try {
-            const res = await axios.post('http://localhost:3000/api/upload-multiple', uploadedFiles, {
+            const res = await api.post('/api/upload-multiple', uploadedFiles, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             chapterContent = res.data.filenames;
@@ -83,8 +83,8 @@ const UploadChapter: React.FC = () => {
           'x-auth-token': token,
         },
       };
-      const res = await axios.post(
-        `http://localhost:3000/api/works/${workId}/chapters`,
+      const res = await api.post(
+        `/api/works/${workId}/chapters`,
         chapterData,
         config
       );

@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react'; // , useContext
+import React, { useState, useMemo, useContext } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import {
   CssBaseline,
@@ -14,12 +14,15 @@ import UploadWork from './components/UploadWork';
 import UploadChapter from './components/UploadChapter';
 import Login from './components/Login';
 import Register from './components/Register';
+import EditWork from './components/EditWork';
+import EditChapter from './components/EditChapter';
+import MyWorks from './components/MyWorks';
 import { ColorModeContext } from './ColorModeContext';
-// import { AuthContext } from './AuthContext';
+import { AuthContext } from './AuthContext';
 import { getTheme } from './theme';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
-// import ProtectedRoute from './components/ProtectedRoute';
-// import GuestRoute from './components/GuestRoute';
+import ProtectedRoute from './components/ProtectedRoute';
+import GuestRoute from './components/GuestRoute';
 import './App.css';
 
 const App: React.FC = () => {
@@ -34,7 +37,7 @@ const App: React.FC = () => {
   );
 
   const theme = useMemo(() => createTheme(getTheme(mode)), [mode]);
-  // const authContext = useContext(AuthContext);
+  const authContext = useContext(AuthContext);
 
   return (
     <ColorModeContext.Provider value={colorMode}>
@@ -43,15 +46,21 @@ const App: React.FC = () => {
         <Box sx={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
           <Navbar />
           <Container component="main" sx={{ mt: 4, mb: 4, flexGrow: 1 }}>
-            {/* Temporarily disable authentication for testing */}
             <Routes>
               <Route path="/" element={<Home />} />
               <Route path="/works/:id" element={<WorkPage />} />
               <Route path="/chapters/:id" element={<ChapterReader />} />
-              <Route path="/upload-work" element={<UploadWork />} />
-              <Route path="/upload-chapter" element={<UploadChapter />} />
-              <Route path="/login" element={<Login />} />
-              <Route path="/register" element={<Register />} />
+              <Route element={<ProtectedRoute />}>
+                <Route path="/my-works" element={<MyWorks />} />
+                <Route path="/upload-work" element={<UploadWork />} />
+                <Route path="/upload-chapter" element={<UploadChapter />} />
+                <Route path="/edit-work/:id" element={<EditWork />} />
+                <Route path="/edit-chapter/:id" element={<EditChapter />} />
+              </Route>
+              <Route element={<GuestRoute />}>
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+              </Route>
             </Routes>
           </Container>
           <Footer />
