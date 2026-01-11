@@ -5,12 +5,12 @@ import Work, { IWork } from '../models/Work';
 import User from '../models/User';
 import Chapter, { IChapter } from '../models/Chapter';
 
+import { IUser } from '../models/User';
+
 const router = express.Router();
 
 interface AuthRequest extends Request {
-  user?: {
-    id: string;
-  };
+  user?: IUser;
 }
 
 // @route   POST /works
@@ -146,8 +146,8 @@ router.post(
         return res.status(404).json({ msg: 'Work not found' });
       }
 
-      // Check if the user owns the work
-      if (work.author.toString() !== req.user!.id) {
+      // Check if the user owns the work or is an admin
+      if (work.author.toString() !== req.user!.id && req.user!.role !== 'admin') {
         return res.status(401).json({ msg: 'User not authorized' });
       }
 
@@ -190,8 +190,8 @@ router.put('/:id', auth, async (req: AuthRequest, res: any) => {
 
     if (!work) return res.status(404).json({ msg: 'Work not found' });
 
-    // Make sure user owns work
-    if (work.author.toString() !== req.user!.id) {
+    // Make sure user owns work or is an admin
+    if (work.author.toString() !== req.user!.id && req.user!.role !== 'admin') {
       return res.status(401).json({ msg: 'Not authorized' });
     }
 
@@ -220,8 +220,8 @@ router.delete('/:id', auth, async (req: AuthRequest, res: any) => {
       return res.status(404).json({ msg: 'Work not found' });
     }
 
-    // Check user
-    if (work.author.toString() !== req.user!.id) {
+    // Check user or admin
+    if (work.author.toString() !== req.user!.id && req.user!.role !== 'admin') {
       return res.status(401).json({ msg: 'User not authorized' });
     }
 
