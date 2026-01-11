@@ -188,7 +188,25 @@ const UploadWork: React.FC = () => {
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
           <Box>
             <FormControlLabel
-              control={<Switch checked={isPublished} onChange={onSwitchChange} name="isPublished" color="primary" />}
+              control={
+                <Switch
+                  checked={isPublished}
+                  onChange={onSwitchChange}
+                  name="isPublished"
+                  color="primary"
+                  sx={{
+                    '& .MuiSwitch-switchBase.Mui-checked': {
+                      color: (theme) => theme.palette.success.main,
+                      '&:hover': {
+                        backgroundColor: (theme) => `${theme.palette.success.main}14`,
+                      },
+                    },
+                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                      backgroundColor: (theme) => theme.palette.success.main,
+                    },
+                  }}
+                />
+              }
               label="Published"
             />
             <FormHelperText>If published, the work will be visible to all users.</FormHelperText>
