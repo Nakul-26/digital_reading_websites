@@ -16,7 +16,12 @@ import {
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { api } from '../api';
-import { IUser } from '../../../backend/src/models/User';
+
+interface IUser {
+  _id: string;
+  username: string;
+  role: 'user' | 'admin';
+}
 
 interface IWork {
   _id: string;
