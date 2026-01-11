@@ -16,6 +16,7 @@ import {
   DialogTitle,
   CardHeader,
   IconButton,
+  Chip,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -32,6 +33,8 @@ interface IWork {
     _id: string;
     username: string;
   };
+  status: string;
+  isPublished: boolean;
 }
 
 const MyWorks: React.FC = () => {
@@ -144,6 +147,10 @@ const MyWorks: React.FC = () => {
                     >
                       {work.description}
                     </Typography>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
+                      <Chip label={work.status} size="small" />
+                      <Chip label={work.isPublished ? 'Published' : 'Unpublished'} size="small" color={work.isPublished ? 'success' : 'default'} />
+                    </Box>
                   </CardContent>
                 </CardActionArea>
               </Card>

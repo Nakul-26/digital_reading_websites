@@ -10,6 +10,8 @@ import {
   FormControl,
   InputLabel,
   FormHelperText,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import { api } from '../api';
 
@@ -18,18 +20,28 @@ const UploadWork: React.FC = () => {
     title: '',
     type: 'novel',
     description: '',
+    genres: '',
+    tags: '',
+    status: 'ongoing',
+    language: '',
+    isPublished: false,
+    contentWarnings: '',
   });
   const [coverImage, setCoverImage] = useState<File | null>(null);
   const [message, setMessage] = useState<string>('');
 
-  const { title, type, description } = formData;
+  const { title, type, description, genres, tags, status, language, isPublished, contentWarnings } = formData;
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
   
   const onSelectChange = (e: any) => {
-    setFormData({ ...formData, type: e.target.value });
+    setFormData({ ...formData, [e.target.name]: e.target.value });
   }
+
+  const onSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.checked });
+  };
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -63,6 +75,12 @@ const UploadWork: React.FC = () => {
       type,
       description,
       coverImageUrl: coverImageUrl,
+      genres: genres.split(',').map(g => g.trim()),
+      tags: tags.split(',').map(t => t.trim()),
+      status,
+      language,
+      isPublished,
+      contentWarnings: contentWarnings.split(',').map(cw => cw.trim()),
     };
 
     try {
@@ -120,6 +138,56 @@ const UploadWork: React.FC = () => {
           multiline
           rows={4}
           margin="normal"
+        />
+        <TextField
+          label="Genres (comma-separated)"
+          name="genres"
+          value={genres}
+          onChange={onChange}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          label="Tags (comma-separated)"
+          name="tags"
+          value={tags}
+          onChange={onChange}
+          fullWidth
+          margin="normal"
+        />
+        <FormControl fullWidth margin="normal">
+          <InputLabel id="status-label">Status</InputLabel>
+          <Select
+            labelId="status-label"
+            name="status"
+            value={status}
+            onChange={onSelectChange}
+            label="Status"
+          >
+            <MenuItem value="ongoing">Ongoing</MenuItem>
+            <MenuItem value="completed">Completed</MenuItem>
+            <MenuItem value="hiatus">Hiatus</MenuItem>
+          </Select>
+        </FormControl>
+        <TextField
+          label="Language"
+          name="language"
+          value={language}
+          onChange={onChange}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          label="Content Warnings (comma-separated)"
+          name="contentWarnings"
+          value={contentWarnings}
+          onChange={onChange}
+          fullWidth
+          margin="normal"
+        />
+        <FormControlLabel
+          control={<Switch checked={isPublished} onChange={onSwitchChange} name="isPublished" />}
+          label="Published"
         />
         <Button variant="contained" component="label" sx={{ mt: 2 }}>
           Upload Cover Image

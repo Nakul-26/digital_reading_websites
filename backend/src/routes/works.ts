@@ -23,6 +23,8 @@ router.post(
     [
       check('title', 'Title is required').not().isEmpty(),
       check('type', 'Type is required').isIn(['manga', 'novel', 'comic']),
+      check('status', 'Status is required').isIn(['ongoing', 'completed', 'hiatus']),
+      check('isPublished', 'isPublished is required').isBoolean(),
     ],
   ],
   async (req: AuthRequest, res: any) => {
@@ -31,7 +33,7 @@ router.post(
       return res.status(400).json({ errors: errors.array() });
     }
 
-    const { title, type, description, coverImageUrl } = req.body;
+    const { title, type, description, coverImageUrl, genres, tags, status, language, isPublished, contentWarnings } = req.body;
 
     try {
       const newWork: IWork = new Work({
@@ -40,6 +42,12 @@ router.post(
         description,
         coverImageUrl,
         author: req.user!.id,
+        genres,
+        tags,
+        status,
+        language,
+        isPublished,
+        contentWarnings,
       });
 
       const work = await newWork.save();
@@ -163,13 +171,19 @@ router.post(
 // @desc    Update a work
 // @access  Private
 router.put('/:id', auth, async (req: AuthRequest, res: any) => {
-  const { title, description, coverImageUrl } = req.body;
+  const { title, description, coverImageUrl, genres, tags, status, language, isPublished, contentWarnings } = req.body;
 
   // Build work object
   const workFields: any = {};
   if (title) workFields.title = title;
   if (description) workFields.description = description;
   if (coverImageUrl) workFields.coverImageUrl = coverImageUrl;
+  if (genres) workFields.genres = genres;
+  if (tags) workFields.tags = tags;
+  if (status) workFields.status = status;
+  if (language) workFields.language = language;
+  if (isPublished) workFields.isPublished = isPublished;
+  if (contentWarnings) workFields.contentWarnings = contentWarnings;
 
   try {
     let work = await Work.findById(req.params.id);

@@ -6,6 +6,12 @@ import {
   Typography,
   TextField,
   Button,
+  Select,
+  MenuItem,
+  FormControl,
+  InputLabel,
+  Switch,
+  FormControlLabel,
 } from '@mui/material';
 import { AuthContext } from '../AuthContext';
 import { api } from '../api';
@@ -16,6 +22,12 @@ const EditWork: React.FC = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    genres: '',
+    tags: '',
+    status: 'ongoing',
+    language: '',
+    isPublished: false,
+    contentWarnings: '',
   });
   const authContext = useContext(AuthContext);
 
@@ -26,6 +38,12 @@ const EditWork: React.FC = () => {
         setFormData({
           title: res.data.title,
           description: res.data.description,
+          genres: res.data.genres.join(', '),
+          tags: res.data.tags.join(', '),
+          status: res.data.status,
+          language: res.data.language,
+          isPublished: res.data.isPublished,
+          contentWarnings: res.data.contentWarnings.join(', '),
         });
       } catch (err) {
         console.error(err);
@@ -34,15 +52,29 @@ const EditWork: React.FC = () => {
     fetchWork();
   }, [id]);
 
-  const { title, description } = formData;
+  const { title, description, genres, tags, status, language, isPublished, contentWarnings } = formData;
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
     setFormData({ ...formData, [e.target.name]: e.target.value });
 
+  const onSelectChange = (e: any) => {
+    setFormData({ ...formData, [e.target.name]: e.target.value });
+  }
+
+  const onSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setFormData({ ...formData, [e.target.name]: e.target.checked });
+  };
+
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     try {
-      await api.put(`/api/works/${id}`, formData);
+      const workData = {
+        ...formData,
+        genres: genres.split(',').map(g => g.trim()),
+        tags: tags.split(',').map(t => t.trim()),
+        contentWarnings: contentWarnings.split(',').map(cw => cw.trim()),
+      };
+      await api.put(`/api/works/${id}`, workData);
       navigate(`/works/${id}`);
     } catch (err) {
       console.error(err);
@@ -73,6 +105,56 @@ const EditWork: React.FC = () => {
           multiline
           rows={4}
           margin="normal"
+        />
+        <TextField
+          label="Genres (comma-separated)"
+          name="genres"
+          value={genres}
+          onChange={onChange}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          label="Tags (comma-separated)"
+          name="tags"
+          value={tags}
+          onChange={onChange}
+          fullWidth
+          margin="normal"
+        />
+        <FormControl fullWidth margin="normal">
+          <InputLabel id="status-label">Status</InputLabel>
+          <Select
+            labelId="status-label"
+            name="status"
+            value={status}
+            onChange={onSelectChange}
+            label="Status"
+          >
+            <MenuItem value="ongoing">Ongoing</MenuItem>
+            <MenuItem value="completed">Completed</MenuItem>
+            <MenuItem value="hiatus">Hiatus</MenuItem>
+          </Select>
+        </FormControl>
+        <TextField
+          label="Language"
+          name="language"
+          value={language}
+          onChange={onChange}
+          fullWidth
+          margin="normal"
+        />
+        <TextField
+          label="Content Warnings (comma-separated)"
+          name="contentWarnings"
+          value={contentWarnings}
+          onChange={onChange}
+          fullWidth
+          margin="normal"
+        />
+        <FormControlLabel
+          control={<Switch checked={isPublished} onChange={onSwitchChange} name="isPublished" />}
+          label="Published"
         />
         <Button
           type="submit"

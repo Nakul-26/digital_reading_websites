@@ -18,6 +18,7 @@ import {
   DialogContent,
   DialogContentText,
   DialogTitle,
+  Chip,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -34,6 +35,12 @@ interface IWork {
     _id: string;
     username: string;
   };
+  genres: string[];
+  tags: string[];
+  status: string;
+  language: string;
+  isPublished: boolean;
+  contentWarnings: string[];
 }
 
 interface IChapter {
@@ -133,11 +140,27 @@ const WorkPage: React.FC = () => {
             <Typography variant="body1" paragraph>
               {work.description}
             </Typography>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+              {work.genres.map(genre => <Chip key={genre} label={genre} />)}
+            </Box>
+            <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+              {work.tags.map(tag => <Chip key={tag} label={tag} />)}
+            </Box>
+            <Typography variant="body2">Status: {work.status}</Typography>
+            <Typography variant="body2">Language: {work.language}</Typography>
+            <Typography variant="body2">Published: {work.isPublished ? 'Yes' : 'No'}</Typography>
+            <Box sx={{ mt: 2 }}>
+              <Typography variant="subtitle2">Content Warnings:</Typography>
+              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                {work.contentWarnings.map(warning => <Chip key={warning} label={warning} color="warning" />)}
+              </Box>
+            </Box>
             {isAuthor && (
               <Button
                 variant="contained"
                 component={RouterLink}
                 to={`/upload-chapter?workId=${work._id}`}
+                sx={{ mt: 2 }}
               >
                 Upload Chapter
               </Button>

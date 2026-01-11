@@ -8,6 +8,7 @@ import {
   Typography,
   CardActionArea,
   CardMedia,
+  Chip,
 } from '@mui/material';
 import { api } from '../api';
 
@@ -20,6 +21,7 @@ interface IWork {
   author: {
     username: string;
   };
+  status: string;
 }
 
 const Home: React.FC = () => {
@@ -127,6 +129,9 @@ const Home: React.FC = () => {
                     >
                       {featuredWork.description}
                     </Typography>
+                    <Box sx={{ mt: 2 }}>
+                      <Chip label={featuredWork.status} size="small" />
+                    </Box>
                   </CardContent>
                 </Grid>
               </Grid>
@@ -190,6 +195,9 @@ const Home: React.FC = () => {
                   >
                     {work.description}
                   </Typography>
+                  <Box sx={{ mt: 2 }}>
+                    <Chip label={work.status} size="small" />
+                  </Box>
                 </CardContent>
               </CardActionArea>
             </Card>
