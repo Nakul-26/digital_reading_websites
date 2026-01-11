@@ -152,29 +152,28 @@ const EditWork: React.FC = () => {
           fullWidth
           margin="normal"
         />
-        <FormControlLabel
-          control={
-            <Switch
-              checked={isPublished}
-              onChange={onSwitchChange}
-              name="isPublished"
-              color="primary"
-              sx={{
-                '& .MuiSwitch-switchBase.Mui-checked': {
-                  color: (theme) => theme.palette.success.main,
-                  '&:hover': {
-                    backgroundColor: (theme) => `${theme.palette.success.main}14`,
-                  },
-                },
-                '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                  backgroundColor: (theme) => theme.palette.success.main,
-                },
-              }}
-            />
-          }
-          label="Published"
-        />
-        <FormHelperText>If published, the work will be visible to all users.</FormHelperText>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={isPublished}
+                          onChange={onSwitchChange}
+                          name="isPublished"
+                          color="primary"
+                          sx={{
+                            '& .MuiSwitch-switchBase.Mui-checked': {
+                              color: (theme) => theme.palette.grey[500],
+                              '&:hover': {
+                                backgroundColor: (theme) => `${theme.palette.grey[500]}14`,
+                              },
+                            },
+                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
+                              backgroundColor: (theme) => theme.palette.grey[500],
+                            },
+                          }}
+                        />
+                      }
+                      label="Published"
+                    />        <FormHelperText>If published, the work will be visible to all users.</FormHelperText>
         <Button
           type="submit"
           variant="contained"

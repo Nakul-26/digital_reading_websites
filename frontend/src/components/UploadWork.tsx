@@ -196,13 +196,13 @@ const UploadWork: React.FC = () => {
                   color="primary"
                   sx={{
                     '& .MuiSwitch-switchBase.Mui-checked': {
-                      color: (theme) => theme.palette.success.main,
+                      color: (theme) => theme.palette.grey[500],
                       '&:hover': {
-                        backgroundColor: (theme) => `${theme.palette.success.main}14`,
+                        backgroundColor: (theme) => `${theme.palette.grey[500]}14`,
                       },
                     },
                     '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                      backgroundColor: (theme) => theme.palette.success.main,
+                      backgroundColor: (theme) => theme.palette.grey[500],
                     },
                   }}
                 />
