@@ -185,14 +185,19 @@ const UploadWork: React.FC = () => {
           fullWidth
           margin="normal"
         />
-        <FormControlLabel
-          control={<Switch checked={isPublished} onChange={onSwitchChange} name="isPublished" />}
-          label="Published"
-        />
-        <Button variant="contained" component="label" sx={{ mt: 2 }}>
-          Upload Cover Image
-          <input type="file" hidden onChange={onFileChange} />
-        </Button>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
+          <Box>
+            <FormControlLabel
+              control={<Switch checked={isPublished} onChange={onSwitchChange} name="isPublished" color="primary" />}
+              label="Published"
+            />
+            <FormHelperText>If published, the work will be visible to all users.</FormHelperText>
+          </Box>
+          <Button variant="contained" component="label">
+            Upload Cover Image
+            <input type="file" hidden onChange={onFileChange} />
+          </Button>
+        </Box>
         {coverImage && <Typography sx={{ mt: 1 }}>{coverImage.name}</Typography>}
         <Button
           type="submit"

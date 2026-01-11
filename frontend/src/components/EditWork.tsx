@@ -153,9 +153,10 @@ const EditWork: React.FC = () => {
           margin="normal"
         />
         <FormControlLabel
-          control={<Switch checked={isPublished} onChange={onSwitchChange} name="isPublished" />}
+          control={<Switch checked={isPublished} onChange={onSwitchChange} name="isPublished" color="primary" />}
           label="Published"
         />
+        <FormHelperText>If published, the work will be visible to all users.</FormHelperText>
         <Button
           type="submit"
           variant="contained"
