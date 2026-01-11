@@ -4,12 +4,14 @@ import { api } from './api';
 interface IUser {
   _id: string;
   username: string;
+  role: 'user' | 'admin';
 }
 
 interface AuthContextType {
   isAuthenticated: boolean;
   setIsAuthenticated: (isAuthenticated: boolean) => void;
   user: IUser | null;
+  loading: boolean;
   checkAuth: () => void;
 }
 
@@ -18,6 +20,7 @@ export const AuthContext = createContext<AuthContextType | undefined>(undefined)
 export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<IUser | null>(null);
+  const [loading, setLoading] = useState<boolean>(true);
 
   const checkAuth = async () => {
     const token = localStorage.getItem('token');
@@ -38,6 +41,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
       setUser(null);
       setIsAuthenticated(false);
     }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -45,7 +49,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, user, checkAuth }}>
+    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, user, loading, checkAuth }}>
       {children}
     </AuthContext.Provider>
   );

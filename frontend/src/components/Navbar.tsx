@@ -60,6 +60,11 @@ const Navbar = () => {
               <Button component={RouterLink} to="/upload-work" color="inherit">
                 Upload Work
               </Button>
+              {user?.role === 'admin' && (
+                <Button component={RouterLink} to="/admin" color="inherit">
+                  Admin
+                </Button>
+              )}
               <Button variant="contained" disableElevation onClick={handleLogout}>
                 Logout
               </Button>

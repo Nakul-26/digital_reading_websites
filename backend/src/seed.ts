@@ -30,6 +30,15 @@ const seedDB = async () => {
     await sampleUser.save();
     console.log('Created sample user.');
 
+    // Create admin user
+    const adminUser = new User({
+      username: 'admin',
+      password: 'adminpassword',
+      role: 'admin',
+    });
+    await adminUser.save();
+    console.log('Created admin user.');
+
     // Create sample novel
     const novel = new Work({
       title: 'The Fall of the Monolith',

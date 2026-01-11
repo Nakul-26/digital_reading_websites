@@ -11,6 +11,11 @@ const UserSchema = new Schema({
     type: String,
     required: true,
   },
+  role: {
+    type: String,
+    enum: ['user', 'admin'],
+    default: 'user',
+  },
 });
 
 UserSchema.pre('save', async function () {
@@ -24,6 +29,7 @@ UserSchema.pre('save', async function () {
 export interface IUser extends Document {
   username: string;
   password?: string;
+  role: 'user' | 'admin';
 }
 
 export default mongoose.model<IUser>('User', UserSchema);

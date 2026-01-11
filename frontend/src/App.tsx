@@ -23,6 +23,8 @@ import { getTheme } from './theme';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
+import AdminDashboard from './components/AdminDashboard';
+import AdminRoute from './components/AdminRoute';
 import './App.css';
 
 const App: React.FC = () => {
@@ -56,6 +58,7 @@ const App: React.FC = () => {
                 <Route path="/upload-chapter" element={<UploadChapter />} />
                 <Route path="/edit-work/:id" element={<EditWork />} />
                 <Route path="/edit-chapter/:id" element={<EditChapter />} />
+                <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
               </Route>
               <Route element={<GuestRoute />}>
                 <Route path="/login" element={<Login />} />

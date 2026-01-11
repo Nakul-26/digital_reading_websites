@@ -11,6 +11,7 @@ import multer from 'multer';
 import authRoutes from './routes/auth';
 import worksRoutes from './routes/works';
 import chaptersRoutes from './routes/chapters';
+import adminRoutes from './routes/admin';
 
 dotenv.config();
 const app = express();
@@ -130,6 +131,7 @@ app.post('/api/upload-multiple', upload.array('files'), (req: Request, res: Resp
 app.use('/api/auth', authRoutes);
 app.use('/api/works', worksRoutes);
 app.use('/api/chapters', chaptersRoutes);
+app.use('/api/admin', adminRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is working");
