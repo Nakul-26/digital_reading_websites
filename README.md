@@ -25,7 +25,7 @@ This is a full-stack web application designed for authors to upload and manage t
 ## Technologies Used
 
 ### Backend
-*   **Node.js**: JavaScript runtime environment.
+*   **Node.js**: Runtime environment for executing JavaScript and TypeScript (via transpilation) on the server.
 *   **Express.js**: Web application framework.
 *   **TypeScript**: Statically typed superset of JavaScript.
 *   **MongoDB**: NoSQL database.
