@@ -12,6 +12,7 @@ import authRoutes from './routes/auth';
 import worksRoutes from './routes/works';
 import chaptersRoutes from './routes/chapters';
 import adminRoutes from './routes/admin';
+import { HttpError } from './utils/HttpError';
 
 dotenv.config();
 const app = express();
@@ -54,11 +55,7 @@ connectDB();
 
 // --- Middleware ---
 const corsOptions = {
-  origin: [
-    "http://localhost:5173",
-    "https://timetable-generator-3tvm-git-main-nakul-26s-projects.vercel.app",
-    "https://timetable-generator-3tvm.vercel.app",
-  ],
+  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ["http://localhost:5173"],
   optionsSuccessStatus: 200,
   credentials: true
 };
@@ -135,6 +132,28 @@ app.use('/api/admin', adminRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is working");
+});
+
+// Error handling middleware
+app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
+  if (res.headersSent) {
+    return next(err);
+  }
+
+  let statusCode = 500;
+  let message = 'An unknown error occurred!';
+  let data;
+
+  if (err instanceof HttpError) {
+    statusCode = err.statusCode;
+    message = err.message;
+    data = err.data;
+  } else {
+    // Log unexpected errors for debugging
+    console.error('Unhandled server error:', err);
+  }
+
+  res.status(statusCode).json({ message, data });
 });
 
 const PORT = process.env.PORT || 3000;

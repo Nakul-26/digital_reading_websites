@@ -39,17 +39,26 @@ interface IWork {
 
 const MyWorks: React.FC = () => {
   const [works, setWorks] = useState<IWork[]>([]);
+  const [loadingWorks, setLoadingWorks] = useState(true); // New loading state for fetching works
+  const [errorWorks, setErrorWorks] = useState<string | null>(null); // New error state for fetching works
+  const [loadingDelete, setLoadingDelete] = useState(false); // New loading state for delete operation
+  const [errorDelete, setErrorDelete] = useState<string | null>(null); // New error state for delete operation
   const [open, setOpen] = useState(false);
   const [selectedWork, setSelectedWork] = useState<IWork | null>(null);
   const authContext = useContext(AuthContext);
 
   useEffect(() => {
     const fetchWorks = async () => {
+      setLoadingWorks(true);
+      setErrorWorks(null);
       try {
         const res = await api.get('/api/works/my-works');
         setWorks(res.data);
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
+        setErrorWorks(err.response?.data?.message || 'Failed to load your works.');
+      } finally {
+        setLoadingWorks(false);
       }
     };
     fetchWorks();
@@ -58,6 +67,7 @@ const MyWorks: React.FC = () => {
   const handleClickOpen = (work: IWork) => {
     setSelectedWork(work);
     setOpen(true);
+    setErrorDelete(null); // Clear previous delete errors
   };
 
   const handleClose = () => {
@@ -67,23 +77,52 @@ const MyWorks: React.FC = () => {
 
   const handleDelete = async () => {
     if (selectedWork) {
+      setLoadingDelete(true); // Set loading for delete
+      setErrorDelete(null);
       try {
         await api.delete(`/api/works/${selectedWork._id}`);
         setWorks(works.filter((work) => work._id !== selectedWork._id));
         handleClose();
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
+        setErrorDelete(err.response?.data?.message || 'Failed to delete work.');
+      } finally {
+        setLoadingDelete(false); // Clear loading for delete
       }
     }
   };
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
+  if (loadingWorks) {
+    return <Typography>Loading your works...</Typography>;
+  }
+
+  if (errorWorks) {
+    return <Typography color="error">Error: {errorWorks}</Typography>;
+  }
+
+  if (works.length === 0) {
+    return (
+      <Box>
+        <Typography variant="h3" component="h1" gutterBottom>
+          My Works
+        </Typography>
+        <Typography>You haven't created any works yet.</Typography>
+      </Box>
+    );
+  }
+
   return (
     <Box>
       <Typography variant="h3" component="h1" gutterBottom>
         My Works
       </Typography>
+      {errorDelete && (
+        <Typography color="error" variant="body2" sx={{ mb: 2 }}>
+          {errorDelete}
+        </Typography>
+      )}
       <Grid container spacing={3}>
         {works.map((work) => {
           const isAuthor = authContext?.user?._id === work.author._id;

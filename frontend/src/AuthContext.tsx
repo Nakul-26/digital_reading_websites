@@ -1,5 +1,6 @@
-import React, { createContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
 import { api } from './api';
+import { useNavigate } from 'react-router-dom';
 
 interface IUser {
   _id: string;
@@ -13,6 +14,7 @@ interface AuthContextType {
   user: IUser | null;
   loading: boolean;
   checkAuth: () => void;
+  logout: () => void; // Added logout function
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -21,6 +23,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
+  const navigate = useNavigate(); // Initialize useNavigate
 
   const checkAuth = async () => {
     const token = localStorage.getItem('token');
@@ -35,6 +38,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
         delete api.defaults.headers.common['x-auth-token'];
         setUser(null);
         setIsAuthenticated(false);
+        navigate('/login'); // Redirect on failed auth check
       }
     } else {
       delete api.defaults.headers.common['x-auth-token'];
@@ -44,12 +48,20 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     setLoading(false);
   };
 
+  const logout = () => {
+    localStorage.removeItem('token');
+    delete api.defaults.headers.common['x-auth-token'];
+    setUser(null);
+    setIsAuthenticated(false);
+    navigate('/login');
+  };
+
   useEffect(() => {
     checkAuth();
   }, []);
 
   return (
-    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, user, loading, checkAuth }}>
+    <AuthContext.Provider value={{ isAuthenticated, setIsAuthenticated, user, loading, checkAuth, logout }}>
       {children}
     </AuthContext.Provider>
   );

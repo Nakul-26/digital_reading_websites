@@ -53,31 +53,31 @@ const WorkPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [work, setWork] = useState<IWork | null>(null);
   const [chapters, setChapters] = useState<IChapter[]>([]);
+  const [loading, setLoading] = useState(true); // New combined loading state
+  const [error, setError] = useState<string | null>(null); // New error state
   const [open, setOpen] = useState(false);
   const [selectedChapter, setSelectedChapter] = useState<IChapter | null>(null);
   const authContext = useContext(AuthContext);
 
   useEffect(() => {
-    const fetchWork = async () => {
+    const fetchData = async () => {
+      setLoading(true);
+      setError(null);
       try {
-        const res = await api.get(`/api/works/${id}`);
-        setWork(res.data);
-      } catch (err) {
+        const [workRes, chaptersRes] = await Promise.all([
+          api.get(`/api/works/${id}`),
+          api.get(`/api/works/${id}/chapters`),
+        ]);
+        setWork(workRes.data);
+        setChapters(chaptersRes.data);
+      } catch (err: any) {
         console.error(err);
+        setError(err.response?.data?.message || 'Failed to load work data.');
+      } finally {
+        setLoading(false);
       }
     };
-
-    const fetchChapters = async () => {
-      try {
-        const res = await api.get(`/api/works/${id}/chapters`);
-        setChapters(res.data);
-      } catch (err) {
-        console.error(err);
-      }
-    };
-
-    fetchWork();
-    fetchChapters();
+    fetchData();
   }, [id]);
 
   const handleClickOpen = (chapter: IChapter) => {
@@ -96,14 +96,24 @@ const WorkPage: React.FC = () => {
         await api.delete(`/api/chapters/${selectedChapter._id}`);
         setChapters(chapters.filter((chapter) => chapter._id !== selectedChapter._id));
         handleClose();
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
+        setError(err.response?.data?.message || 'Failed to delete chapter.');
       }
     }
   };
 
+  if (loading) {
+    return <Typography>Loading work details...</Typography>;
+  }
+
+  if (error) {
+    return <Typography color="error">Error: {error}</Typography>;
+  }
+
   if (!work) {
-    return <Typography>Loading...</Typography>;
+    // This case should ideally be covered by error handling or loading, but as a fallback
+    return <Typography>Work not found.</Typography>;
   }
 
   const isAuthor =
@@ -176,49 +186,50 @@ const WorkPage: React.FC = () => {
 
         <Paper>
           <List disablePadding>
-            {chapters.length === 0 && (
+            {chapters.length === 0 ? (
               <Typography color="text.secondary" sx={{ p: 3 }}>
                 No chapters published yet.
               </Typography>
-            )}
-            {chapters.map((chapter, index) => (
-              <React.Fragment key={chapter._id}>
-                <ListItem
-                  disablePadding
-                  secondaryAction={
-                    isAuthor && (
-                      <>
-                        <IconButton edge="end" aria-label="edit" component={RouterLink} to={`/edit-chapter/${chapter._id}`}>
-                          <EditIcon />
-                        </IconButton>
-                        <IconButton edge="end" aria-label="delete" onClick={() => handleClickOpen(chapter)}>
-                          <DeleteIcon />
-                        </IconButton>
-                      </>
-                    )
-                  }
-                >
-                  <ListItemButton
-                    component={RouterLink}
-                    to={`/chapters/${chapter._id}`}
-                    sx={{
-                      px: 3,
-                      py: 1.5,
-                      '&:hover': {
-                        backgroundColor: 'action.hover',
-                      },
-                    }}
+            ) : (
+              chapters.map((chapter, index) => (
+                <React.Fragment key={chapter._id}>
+                  <ListItem
+                    disablePadding
+                    secondaryAction={
+                      isAuthor && (
+                        <>
+                          <IconButton edge="end" aria-label="edit" component={RouterLink} to={`/edit-chapter/${chapter._id}`}>
+                            <EditIcon />
+                          </IconButton>
+                          <IconButton edge="end" aria-label="delete" onClick={() => handleClickOpen(chapter)}>
+                            <DeleteIcon />
+                          </IconButton>
+                        </>
+                      )
+                    }
                   >
-                    <ListItemText
-                      primary={chapter.title}
-                      secondary={`Chapter ${chapter.chapterNumber}`}
-                    />
-                  </ListItemButton>
-                </ListItem>
+                    <ListItemButton
+                      component={RouterLink}
+                      to={`/chapters/${chapter._id}`}
+                      sx={{
+                        px: 3,
+                        py: 1.5,
+                        '&:hover': {
+                          backgroundColor: 'action.hover',
+                        },
+                      }}
+                    >
+                      <ListItemText
+                        primary={chapter.title}
+                        secondary={`Chapter ${chapter.chapterNumber}`}
+                      />
+                    </ListItemButton>
+                  </ListItem>
 
-                {index < chapters.length - 1 && <Divider />}
-              </React.Fragment>
-            ))}
+                  {index < chapters.length - 1 && <Divider />}
+                </React.Fragment>
+              ))
+            )}
           </List>
         </Paper>
       </Box>

@@ -4,6 +4,7 @@ import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import dotenv from 'dotenv';
 import auth from '../middleware/auth';
+import { HttpError } from '../utils/HttpError';
 
 dotenv.config();
 
@@ -16,7 +17,7 @@ router.post('/register', async (req, res) => {
   try {
     let user = await User.findOne({ username });
     if (user) {
-      return res.status(400).json({ msg: 'User already exists' });
+      throw new HttpError(400, 'User already exists');
     }
 
     user = new User({
@@ -37,13 +38,13 @@ router.post('/register', async (req, res) => {
       process.env.JWT_SECRET as string,
       { expiresIn: 3600 },
       (err, token) => {
-        if (err) throw err;
+        if (err) return next(err);
         res.json({ token });
       }
     );
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    next(err);
   }
 });
 
@@ -54,12 +55,12 @@ router.post('/login', async (req, res) => {
   try {
     let user = await User.findOne({ username });
     if (!user) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      throw new HttpError(400, 'Invalid credentials');
     }
 
     const isMatch = await bcrypt.compare(password, user.password as string);
     if (!isMatch) {
-      return res.status(400).json({ msg: 'Invalid credentials' });
+      throw new HttpError(400, 'Invalid credentials');
     }
 
     const payload = {
@@ -73,13 +74,13 @@ router.post('/login', async (req, res) => {
       process.env.JWT_SECRET as string,
       { expiresIn: 3600 },
       (err, token) => {
-        if (err) throw err;
+        if (err) return next(err);
         res.json({ token });
       }
     );
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send('Server error');
+    next(err);
   }
 });
 
@@ -90,7 +91,7 @@ router.get('/me', auth, async (req: any, res) => {
     res.json(user);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    next(err);
   }
 });
 

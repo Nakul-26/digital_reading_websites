@@ -2,6 +2,7 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import User, { IUser } from '../models/User';
+import { HttpError } from '../utils/HttpError';
 
 dotenv.config();
 
@@ -15,7 +16,7 @@ export default async function (req: AuthRequest, res: Response, next: NextFuncti
 
   // Check if not token
   if (!token) {
-    return res.status(401).json({ msg: 'No token, authorization denied' });
+    return next(new HttpError(401, 'No token, authorization denied'));
   }
 
   // Verify token
@@ -26,6 +27,6 @@ export default async function (req: AuthRequest, res: Response, next: NextFuncti
     req.user = await User.findById(decoded.user.id).select('-password');
     next();
   } catch (err) {
-    res.status(401).json({ msg: 'Token is not valid' });
+    next(new HttpError(401, 'Token is not valid'));
   }
 }

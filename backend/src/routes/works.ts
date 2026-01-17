@@ -6,6 +6,7 @@ import User from '../models/User';
 import Chapter, { IChapter } from '../models/Chapter';
 
 import { IUser } from '../models/User';
+import { HttpError } from '../utils/HttpError';
 
 const router = express.Router();
 
@@ -27,10 +28,10 @@ router.post(
       check('isPublished', 'isPublished is required').isBoolean(),
     ],
   ],
-  async (req: AuthRequest, res: any) => {
+  async (req: AuthRequest, res: any, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      throw new HttpError(400, 'Validation failed', errors.array());
     }
 
     const { title, type, description, coverImageUrl, genres, tags, status, language, isPublished, contentWarnings } = req.body;
@@ -54,7 +55,7 @@ router.post(
       res.json(work);
     } catch (err: any) {
       console.error(err.message);
-      res.status(500).send('Server Error');
+      next(err);
     }
   }
 );
@@ -63,58 +64,67 @@ router.post(
 // @route   GET /works
 // @desc    Get all works
 // @access  Public
-router.get('/', async (req, res) => {
+router.get('/', async (req, res, next: NextFunction) => {
   try {
-    const works = await Work.find().populate('author', ['_id', 'username']);
+    const works = await Work.find({ isPublished: true }).populate('author', ['_id', 'username']);
     res.json(works);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    next(err);
   }
 });
 
 // @route   GET /works/my-works
 // @desc    Get current user's works
 // @access  Private
-router.get('/my-works', auth, async (req: AuthRequest, res: any) => {
+router.get('/my-works', auth, async (req: AuthRequest, res: any, next: NextFunction) => {
   try {
     const works = await Work.find({ author: req.user!.id }).populate('author', ['_id', 'username']);
     res.json(works);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    next(err);
   }
 });
 
 // @route   GET /works/:id
 // @desc    Get work by ID
 // @access  Public
-router.get('/:id', async (req, res) => {
+router.get('/:id', auth, async (req: AuthRequest, res: any, next: NextFunction) => {
   try {
     const work = await Work.findById(req.params.id).populate('author', ['_id', 'username']);
     if (!work) {
-      return res.status(404).json({ msg: 'Work not found' });
+      throw new HttpError(404, 'Work not found');
+    }
+
+    // If work is not published, check authorization
+    if (!work.isPublished) {
+      // If user is not authenticated or not the author/admin, deny access (return 404 for obscurity)
+      if (!req.user || (work.author.toString() !== req.user.id && req.user.role !== 'admin')) {
+        throw new HttpError(404, 'Work not found'); // Treat as not found to avoid leaking info
+      }
     }
     res.json(work);
   } catch (err: any) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: 'Work not found' });
+      next(new HttpError(404, 'Work not found'));
+    } else {
+      next(err);
     }
-    res.status(500).send('Server Error');
   }
 });
 
 // @route   GET /works/:workId/chapters
 // @desc    Get all chapters for a work
 // @access  Public
-router.get('/:workId/chapters', async (req, res) => {
+router.get('/:workId/chapters', async (req, res, next: NextFunction) => {
   try {
     const chapters = await Chapter.find({ work: req.params.workId }).sort({ chapterNumber: 1 });
     res.json(chapters);
   } catch (err: any) {
     console.error(err.message);
-    res.status(500).send('Server Error');
+    next(err);
   }
 });
 
@@ -131,10 +141,10 @@ router.post(
       check('content', 'Content is required').not().isEmpty(),
     ],
   ],
-  async (req: AuthRequest, res: any) => {
+  async (req: AuthRequest, res: any, next: NextFunction) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+      throw new HttpError(400, 'Validation failed', errors.array());
     }
 
     const { chapterNumber, title, content } = req.body;
@@ -142,13 +152,13 @@ router.post(
 
     try {
       const work = await Work.findById(workId);
-      if (!work) {
-        return res.status(404).json({ msg: 'Work not found' });
-      }
+    if (!work) {
+      throw new HttpError(404, 'Work not found');
+    }
 
       // Check if the user owns the work or is an admin
       if (work.author.toString() !== req.user!.id && req.user!.role !== 'admin') {
-        return res.status(401).json({ msg: 'User not authorized' });
+        throw new HttpError(401, 'User not authorized');
       }
 
       const newChapter: IChapter = new Chapter({
@@ -162,7 +172,7 @@ router.post(
       res.json(chapter);
     } catch (err: any) {
       console.error(err.message);
-      res.status(500).send('Server Error');
+      next(err);
     }
   }
 );
@@ -170,7 +180,7 @@ router.post(
 // @route   PUT /works/:id
 // @desc    Update a work
 // @access  Private
-router.put('/:id', auth, async (req: AuthRequest, res: any) => {
+router.put('/:id', auth, async (req: AuthRequest, res: any, next: NextFunction) => {
   const { title, description, coverImageUrl, genres, tags, status, language, isPublished, contentWarnings } = req.body;
 
   // Build work object
@@ -188,11 +198,11 @@ router.put('/:id', auth, async (req: AuthRequest, res: any) => {
   try {
     let work = await Work.findById(req.params.id);
 
-    if (!work) return res.status(404).json({ msg: 'Work not found' });
+    if (!work) throw new HttpError(404, 'Work not found');
 
     // Make sure user owns work or is an admin
     if (work.author.toString() !== req.user!.id && req.user!.role !== 'admin') {
-      return res.status(401).json({ msg: 'Not authorized' });
+      throw new HttpError(401, 'Not authorized');
     }
 
     work = await Work.findByIdAndUpdate(
@@ -204,7 +214,7 @@ router.put('/:id', auth, async (req: AuthRequest, res: any) => {
     res.json(work);
   } catch (err: any) {
     console.error('Error updating work:', err.message);
-    res.status(500).send('Server Error');
+    next(err);
   }
 });
 
@@ -212,17 +222,17 @@ router.put('/:id', auth, async (req: AuthRequest, res: any) => {
 // @route   DELETE /works/:id
 // @desc    Delete a work
 // @access  Private
-router.delete('/:id', auth, async (req: AuthRequest, res: any) => {
+router.delete('/:id', auth, async (req: AuthRequest, res: any, next: NextFunction) => {
   try {
     const work = await Work.findById(req.params.id);
 
     if (!work) {
-      return res.status(404).json({ msg: 'Work not found' });
+      throw new HttpError(404, 'Work not found');
     }
 
     // Check user or admin
     if (work.author.toString() !== req.user!.id && req.user!.role !== 'admin') {
-      return res.status(401).json({ msg: 'User not authorized' });
+      throw new HttpError(401, 'User not authorized');
     }
 
     await Chapter.deleteMany({ work: req.params.id });
@@ -232,9 +242,10 @@ router.delete('/:id', auth, async (req: AuthRequest, res: any) => {
   } catch (err: any) {
     console.error(err.message);
     if (err.kind === 'ObjectId') {
-      return res.status(404).json({ msg: 'Work not found' });
+      next(new HttpError(404, 'Work not found'));
+    } else {
+      next(err);
     }
-    res.status(500).send('Server Error');
   }
 });
 

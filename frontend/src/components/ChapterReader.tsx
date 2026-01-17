@@ -16,21 +16,37 @@ interface IChapter {
 const ChapterReader: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const [chapter, setChapter] = useState<IChapter | null>(null);
+  const [loading, setLoading] = useState<boolean>(true); // New loading state
+  const [error, setError] = useState<string | null>(null); // New error state
 
   useEffect(() => {
     const fetchChapter = async () => {
+      setLoading(true);
+      setError(null);
       try {
         const res = await api.get(`/api/chapters/${id}`);
         setChapter(res.data);
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
+        setError(err.response?.data?.message || 'Failed to load chapter.');
+      } finally {
+        setLoading(false);
       }
     };
     fetchChapter();
   }, [id]);
 
+  if (loading) {
+    return <Typography>Loading chapter...</Typography>;
+  }
+
+  if (error) {
+    return <Typography color="error">Error: {error}</Typography>;
+  }
+
   if (!chapter) {
-    return <Typography>Loading...</Typography>;
+    // This case should ideally be covered by error handling or loading, but as a fallback
+    return <Typography>Chapter not found.</Typography>;
   }
 
   const isNovel = chapter.work.type === 'novel';

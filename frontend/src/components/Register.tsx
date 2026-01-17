@@ -17,6 +17,8 @@ const Register: React.FC = () => {
     username: '',
     password: '',
   });
+  const [loading, setLoading] = useState(false); // New loading state
+  const [error, setError] = useState<string | null>(null); // New error state
 
   const { username, password } = formData;
   const authContext = useContext(AuthContext);
@@ -24,10 +26,13 @@ const Register: React.FC = () => {
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    setError(null); // Clear error on input change
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true); // Set loading to true
+    setError(null); // Clear previous errors
     try {
       const res = await api.post('/api/auth/register', formData);
       localStorage.setItem('token', res.data.token);
@@ -35,8 +40,12 @@ const Register: React.FC = () => {
       navigate('/upload-work');
     } catch (err: unknown) {
       if (axios.isAxiosError(err)) {
-        console.error(err.response?.data);
+        setError(err.response?.data?.message || 'Registration failed. Please try again.');
+      } else {
+        setError('An unexpected error occurred.');
       }
+    } finally {
+      setLoading(false); // Set loading to false
     }
   };
 
@@ -54,8 +63,13 @@ const Register: React.FC = () => {
           Sign up
         </Typography>
         <Box component="form" onSubmit={onSubmit} sx={{ mt: 3 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12}>
+          {error && (
+            <Typography color="error" variant="body2" sx={{ mb: 2 }}>
+              {error}
+            </Typography>
+          )}
+          <Grid container>
+            <Grid item xs={12} sx={{ mb: 2 }}>
               <TextField
                 required
                 fullWidth
@@ -65,6 +79,7 @@ const Register: React.FC = () => {
                 autoComplete="username"
                 value={username}
                 onChange={onChange}
+                disabled={loading} // Disable during loading
               />
             </Grid>
             <Grid item xs={12}>
@@ -78,6 +93,7 @@ const Register: React.FC = () => {
                 autoComplete="new-password"
                 value={password}
                 onChange={onChange}
+                disabled={loading} // Disable during loading
               />
             </Grid>
           </Grid>
@@ -86,9 +102,10 @@ const Register: React.FC = () => {
             fullWidth
             variant="contained"
             sx={{ mt: 3, mb: 2 }}
+            disabled={loading} // Disable during loading
           >
-            Sign Up
-          </Button> 
+            {loading ? 'Signing Up...' : 'Sign Up'}
+          </Button>
           <Grid container justifyContent="flex-end">
             <Grid item>
               <RouterLink to="/login" style={{ textDecoration: 'none' }}>

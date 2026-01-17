@@ -12,6 +12,8 @@ import {
   Paper,
   Button,
   IconButton,
+  CircularProgress, // Import CircularProgress for loading indicator
+  Box, // Import Box for layout
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -35,22 +37,39 @@ interface IWork {
 const AdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<IUser[]>([]);
   const [works, setWorks] = useState<IWork[]>([]);
+  const [loadingUsers, setLoadingUsers] = useState(true); // New loading state for users
+  const [errorUsers, setErrorUsers] = useState<string | null>(null); // New error state for users
+  const [loadingWorks, setLoadingWorks] = useState(true); // New loading state for works
+  const [errorWorks, setErrorWorks] = useState<string | null>(null); // New error state for works
+  const [loadingDelete, setLoadingDelete] = useState(false); // New loading state for delete operation
+  const [errorDelete, setErrorDelete] = useState<string | null>(null); // New error state for delete operation
+
 
   useEffect(() => {
     const fetchUsers = async () => {
+      setLoadingUsers(true);
+      setErrorUsers(null);
       try {
         const res = await api.get('/api/admin/users');
         setUsers(res.data);
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
+        setErrorUsers(err.response?.data?.message || 'Failed to load users.');
+      } finally {
+        setLoadingUsers(false);
       }
     };
     const fetchWorks = async () => {
+      setLoadingWorks(true);
+      setErrorWorks(null);
       try {
-        const res = await api.get('/api/works');
+        const res = await api.get('/api/admin/works'); // Changed API endpoint
         setWorks(res.data);
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
+        setErrorWorks(err.response?.data?.message || 'Failed to load works.');
+      } finally {
+        setLoadingWorks(false);
       }
     };
     fetchUsers();
@@ -59,11 +78,16 @@ const AdminDashboard: React.FC = () => {
 
   const handleDeleteWork = async (id: string) => {
     if (window.confirm('Are you sure you want to delete this work?')) {
+      setLoadingDelete(true);
+      setErrorDelete(null);
       try {
         await api.delete(`/api/works/${id}`);
         setWorks(works.filter((work) => work._id !== id));
-      } catch (err) {
+      } catch (err: any) {
         console.error(err);
+        setErrorDelete(err.response?.data?.message || 'Failed to delete work.');
+      } finally {
+        setLoadingDelete(false);
       }
     }
   };
@@ -73,61 +97,86 @@ const AdminDashboard: React.FC = () => {
       <Typography variant="h4" component="h1" gutterBottom>
         Admin Dashboard
       </Typography>
+      {errorDelete && (
+        <Typography color="error" variant="body2" sx={{ mb: 2 }}>
+          {errorDelete}
+        </Typography>
+      )}
+
       <Typography variant="h5" component="h2" gutterBottom>
         Users
       </Typography>
-      <TableContainer component={Paper} sx={{ mb: 4 }}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>ID</TableCell>
-              <TableCell>Username</TableCell>
-              <TableCell>Role</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {users.map((user) => (
-              <TableRow key={user._id}>
-                <TableCell>{user._id}</TableCell>
-                <TableCell>{user.username}</TableCell>
-                <TableCell>{user.role}</TableCell>
+      {loadingUsers ? (
+        <Box display="flex" justifyContent="center" my={4}>
+          <CircularProgress />
+        </Box>
+      ) : errorUsers ? (
+        <Typography color="error">Error: {errorUsers}</Typography>
+      ) : users.length === 0 ? (
+        <Typography>No users found.</Typography>
+      ) : (
+        <TableContainer component={Paper} sx={{ mb: 4 }}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>ID</TableCell>
+                <TableCell>Username</TableCell>
+                <TableCell>Role</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {users.map((user) => (
+                <TableRow key={user._id}>
+                  <TableCell>{user._id}</TableCell>
+                  <TableCell>{user.username}</TableCell>
+                  <TableCell>{user.role}</TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
       <Typography variant="h5" component="h2" gutterBottom>
         Works
       </Typography>
-      <TableContainer component={Paper}>
-        <Table>
-          <TableHead>
-            <TableRow>
-              <TableCell>Title</TableCell>
-              <TableCell>Author</TableCell>
-              <TableCell>Actions</TableCell>
-            </TableRow>
-          </TableHead>
-          <TableBody>
-            {works.map((work) => (
-              <TableRow key={work._id}>
-                <TableCell>{work.title}</TableCell>
-                <TableCell>{work.author.username}</TableCell>
-                <TableCell>
-                  <IconButton component={RouterLink} to={`/edit-work/${work._id}`}>
-                    <EditIcon />
-                  </IconButton>
-                  <IconButton onClick={() => handleDeleteWork(work._id)}>
-                    <DeleteIcon />
-                  </IconButton>
-                </TableCell>
+      {loadingWorks ? (
+        <Box display="flex" justifyContent="center" my={4}>
+          <CircularProgress />
+        </Box>
+      ) : errorWorks ? (
+        <Typography color="error">Error: {errorWorks}</Typography>
+      ) : works.length === 0 ? (
+        <Typography>No works found.</Typography>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Title</TableCell>
+                <TableCell>Author</TableCell>
+                <TableCell>Actions</TableCell>
               </TableRow>
-            ))}
-          </TableBody>
-        </Table>
-      </TableContainer>
+            </TableHead>
+            <TableBody>
+              {works.map((work) => (
+                <TableRow key={work._id}>
+                  <TableCell>{work.title}</TableCell>
+                  <TableCell>{work.author.username}</TableCell>
+                  <TableCell>
+                    <IconButton component={RouterLink} to={`/edit-work/${work._id}`}>
+                      <EditIcon />
+                    </IconButton>
+                    <IconButton onClick={() => handleDeleteWork(work._id)} disabled={loadingDelete}>
+                      <DeleteIcon />
+                    </IconButton>
+                  </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
     </Container>
   );
 };
-
-export default AdminDashboard;

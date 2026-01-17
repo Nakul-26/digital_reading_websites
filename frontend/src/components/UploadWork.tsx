@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import axios from 'axios'; // Import axios for isAxiosError check
 import {
   Container,
   Box,
@@ -28,29 +29,44 @@ const UploadWork: React.FC = () => {
     contentWarnings: '',
   });
   const [coverImage, setCoverImage] = useState<File | null>(null);
-  const [message, setMessage] = useState<string>('');
+  const [loading, setLoading] = useState(false); // New loading state
+  const [successMessage, setSuccessMessage] = useState<string | null>(null); // New success message state
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // New error message state
 
   const { title, type, description, genres, tags, status, language, isPublished, contentWarnings } = formData;
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+  const resetMessages = () => {
+    setSuccessMessage(null);
+    setErrorMessage(null);
+  };
+
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    resetMessages(); // Clear messages on input change
+  };
   
   const onSelectChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    resetMessages(); // Clear messages on input change
   }
 
   const onSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.checked });
+    resetMessages(); // Clear messages on input change
   };
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
       setCoverImage(e.target.files[0]);
+      resetMessages(); // Clear messages on file change
     }
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoading(true); // Set loading to true
+    resetMessages(); // Clear previous messages
+
     let coverImageUrl = '';
 
     if (coverImage) {
@@ -63,9 +79,13 @@ const UploadWork: React.FC = () => {
           },
         });
         coverImageUrl = res.data.filename;
-      } catch (err) {
-        console.error(err);
-        setMessage('File upload failed.');
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          setErrorMessage(err.response?.data?.message || 'Cover image upload failed.');
+        } else {
+          setErrorMessage('An unexpected error occurred during image upload.');
+        }
+        setLoading(false); // Stop loading if file upload fails
         return;
       }
     }
@@ -84,19 +104,23 @@ const UploadWork: React.FC = () => {
     };
 
     try {
-      const token = localStorage.getItem('token'); // Assumes token is stored in localStorage
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token,
-        },
-      };
-      const res = await api.post('/api/works', workData, config);
-      console.log(res.data);
-      setMessage('Work created successfully!');
-    } catch (err: any) {
-      console.error(err.response.data);
-      setMessage('Failed to create work.');
+      // The token is already set in api.defaults.headers.common['x-auth-token'] by AuthContext
+      // No need to manually add it to config here unless it's a specific override
+      await api.post('/api/works', workData);
+      setSuccessMessage('Work created successfully!');
+      setFormData({ // Optionally reset form data on success
+        title: '', type: 'novel', description: '', genres: '', tags: '',
+        status: 'ongoing', language: '', isPublished: false, contentWarnings: '',
+      });
+      setCoverImage(null);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setErrorMessage(err.response?.data?.message || 'Failed to create work.');
+      } else {
+        setErrorMessage('An unexpected error occurred during work creation.');
+      }
+    } finally {
+      setLoading(false); // Set loading to false
     }
   };
 
@@ -106,6 +130,16 @@ const UploadWork: React.FC = () => {
         <Typography variant="h4" component="h1" gutterBottom>
           Upload New Work
         </Typography>
+        {successMessage && (
+          <Typography color="success.main" variant="body2" sx={{ mb: 2 }}>
+            {successMessage}
+          </Typography>
+        )}
+        {errorMessage && (
+          <Typography color="error" variant="body2" sx={{ mb: 2 }}>
+            {errorMessage}
+          </Typography>
+        )}
         <TextField
           label="Title"
           name="title"
@@ -114,8 +148,9 @@ const UploadWork: React.FC = () => {
           fullWidth
           required
           margin="normal"
+          disabled={loading}
         />
-        <FormControl fullWidth margin="normal">
+        <FormControl fullWidth margin="normal" disabled={loading}>
           <InputLabel id="type-label">Type</InputLabel>
           <Select
             labelId="type-label"
@@ -138,6 +173,7 @@ const UploadWork: React.FC = () => {
           multiline
           rows={4}
           margin="normal"
+          disabled={loading}
         />
         <TextField
           label="Genres (comma-separated)"
@@ -146,6 +182,7 @@ const UploadWork: React.FC = () => {
           onChange={onChange}
           fullWidth
           margin="normal"
+          disabled={loading}
         />
         <TextField
           label="Tags (comma-separated)"
@@ -154,8 +191,9 @@ const UploadWork: React.FC = () => {
           onChange={onChange}
           fullWidth
           margin="normal"
+          disabled={loading}
         />
-        <FormControl fullWidth margin="normal">
+        <FormControl fullWidth margin="normal" disabled={loading}>
           <InputLabel id="status-label">Status</InputLabel>
           <Select
             labelId="status-label"
@@ -176,6 +214,7 @@ const UploadWork: React.FC = () => {
           onChange={onChange}
           fullWidth
           margin="normal"
+          disabled={loading}
         />
         <TextField
           label="Content Warnings (comma-separated)"
@@ -184,6 +223,7 @@ const UploadWork: React.FC = () => {
           onChange={onChange}
           fullWidth
           margin="normal"
+          disabled={loading}
         />
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
           <Box>
@@ -208,12 +248,13 @@ const UploadWork: React.FC = () => {
                 />
               }
               label="Published"
+              disabled={loading}
             />
             <FormHelperText>If published, the work will be visible to all users.</FormHelperText>
           </Box>
-          <Button variant="contained" component="label">
+          <Button variant="contained" component="label" disabled={loading}>
             Upload Cover Image
-            <input type="file" hidden onChange={onFileChange} />
+            <input type="file" hidden onChange={onFileChange} disabled={loading} />
           </Button>
         </Box>
         {coverImage && <Typography sx={{ mt: 1 }}>{coverImage.name}</Typography>}
@@ -222,10 +263,10 @@ const UploadWork: React.FC = () => {
           variant="contained"
           fullWidth
           sx={{ mt: 3 }}
+          disabled={loading}
         >
-          Create Work
+          {loading ? 'Creating Work...' : 'Create Work'}
         </Button>
-        {message && <FormHelperText sx={{ mt: 2 }}>{message}</FormHelperText>}
       </Box>
     </Container>
   );

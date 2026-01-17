@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import axios from 'axios'; // Import axios for isAxiosError check
 import {
   Container,
   Box,
@@ -12,6 +13,7 @@ import {
   InputLabel,
   Switch,
   FormControlLabel,
+  FormHelperText, // Added FormHelperText for messages
 } from '@mui/material';
 import { AuthContext } from '../AuthContext';
 import { api } from '../api';
@@ -29,12 +31,31 @@ const EditWork: React.FC = () => {
     isPublished: false,
     contentWarnings: '',
   });
+  const [loadingFetch, setLoadingFetch] = useState(true); // New loading state for fetching work data
+  const [errorFetch, setErrorFetch] = useState<string | null>(null); // New error state for fetching work data
+  const [loadingSubmit, setLoadingSubmit] = useState(false); // New loading state for form submission
+  const [errorSubmit, setErrorSubmit] = useState<string | null>(null); // New error state for form submission
+  const [successMessage, setSuccessMessage] = useState<string | null>(null); // New success message state
   const authContext = useContext(AuthContext);
+
+  const resetMessages = () => {
+    setErrorSubmit(null);
+    setSuccessMessage(null);
+  };
 
   useEffect(() => {
     const fetchWork = async () => {
+      setLoadingFetch(true);
+      setErrorFetch(null);
       try {
         const res = await api.get(`/api/works/${id}`);
+        // Check if the current user is the author or admin before allowing edit
+        if (authContext?.user?._id !== res.data.author._id && authContext?.user?.role !== 'admin') {
+            setErrorFetch('You are not authorized to edit this work.');
+            setLoadingFetch(false);
+            return;
+        }
+
         setFormData({
           title: res.data.title,
           description: res.data.description,
@@ -45,28 +66,40 @@ const EditWork: React.FC = () => {
           isPublished: res.data.isPublished,
           contentWarnings: res.data.contentWarnings.join(', '),
         });
-      } catch (err) {
-        console.error(err);
+      } catch (err: unknown) {
+        if (axios.isAxiosError(err)) {
+          setErrorFetch(err.response?.data?.message || 'Failed to load work data.');
+        } else {
+          setErrorFetch('An unexpected error occurred while loading work data.');
+        }
+      } finally {
+        setLoadingFetch(false);
       }
     };
     fetchWork();
-  }, [id]);
+  }, [id, authContext?.user]); // Added authContext.user as dependency to re-check authorization if user changes
 
   const { title, description, genres, tags, status, language, isPublished, contentWarnings } = formData;
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    resetMessages();
+  };
 
   const onSelectChange = (e: any) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    resetMessages();
   }
 
   const onSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.checked });
+    resetMessages();
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoadingSubmit(true);
+    resetMessages();
     try {
       const workData = {
         ...formData,
@@ -75,11 +108,30 @@ const EditWork: React.FC = () => {
         contentWarnings: contentWarnings.split(',').map(cw => cw.trim()),
       };
       await api.put(`/api/works/${id}`, workData);
-      navigate(`/works/${id}`);
-    } catch (err) {
-      console.error(err);
+      setSuccessMessage('Work updated successfully!');
+      // navigate(`/works/${id}`); // Optionally navigate after success
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setErrorSubmit(err.response?.data?.message || 'Failed to update work.');
+      } else {
+        setErrorSubmit('An unexpected error occurred during work update.');
+      }
+    } finally {
+      setLoadingSubmit(false);
     }
   };
+
+  if (loadingFetch) {
+    return <Typography>Loading work details for editing...</Typography>;
+  }
+
+  if (errorFetch) {
+    return <Typography color="error">Error: {errorFetch}</Typography>;
+  }
+
+  if (!formData.title) { // Fallback if formData is empty and no fetch error
+    return <Typography>Work not found or unauthorized.</Typography>;
+  }
 
   return (
     <Container maxWidth="sm">
@@ -87,6 +139,16 @@ const EditWork: React.FC = () => {
         <Typography variant="h4" component="h1" gutterBottom>
           Edit Work
         </Typography>
+        {successMessage && (
+          <Typography color="success.main" variant="body2" sx={{ mb: 2 }}>
+            {successMessage}
+          </Typography>
+        )}
+        {errorSubmit && (
+          <Typography color="error" variant="body2" sx={{ mb: 2 }}>
+            {errorSubmit}
+          </Typography>
+        )}
         <TextField
           label="Title"
           name="title"
@@ -95,6 +157,7 @@ const EditWork: React.FC = () => {
           fullWidth
           required
           margin="normal"
+          disabled={loadingSubmit}
         />
         <TextField
           label="Description"
@@ -105,6 +168,7 @@ const EditWork: React.FC = () => {
           multiline
           rows={4}
           margin="normal"
+          disabled={loadingSubmit}
         />
         <TextField
           label="Genres (comma-separated)"
@@ -113,6 +177,7 @@ const EditWork: React.FC = () => {
           onChange={onChange}
           fullWidth
           margin="normal"
+          disabled={loadingSubmit}
         />
         <TextField
           label="Tags (comma-separated)"
@@ -121,8 +186,9 @@ const EditWork: React.FC = () => {
           onChange={onChange}
           fullWidth
           margin="normal"
+          disabled={loadingSubmit}
         />
-        <FormControl fullWidth margin="normal">
+        <FormControl fullWidth margin="normal" disabled={loadingSubmit}>
           <InputLabel id="status-label">Status</InputLabel>
           <Select
             labelId="status-label"
@@ -143,6 +209,7 @@ const EditWork: React.FC = () => {
           onChange={onChange}
           fullWidth
           margin="normal"
+          disabled={loadingSubmit}
         />
         <TextField
           label="Content Warnings (comma-separated)"
@@ -151,6 +218,7 @@ const EditWork: React.FC = () => {
           onChange={onChange}
           fullWidth
           margin="normal"
+          disabled={loadingSubmit}
         />
                     <FormControlLabel
                       control={
@@ -173,14 +241,16 @@ const EditWork: React.FC = () => {
                         />
                       }
                       label="Published"
+                      disabled={loadingSubmit}
                     />        <FormHelperText>If published, the work will be visible to all users.</FormHelperText>
         <Button
           type="submit"
           variant="contained"
           fullWidth
           sx={{ mt: 3 }}
+          disabled={loadingSubmit}
         >
-          Save Changes
+          {loadingSubmit ? 'Saving Changes...' : 'Save Changes'}
         </Button>
       </Box>
     </Container>

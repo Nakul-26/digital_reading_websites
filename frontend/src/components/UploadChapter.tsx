@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
+import axios from 'axios'; // Import axios for isAxiosError check
 import {
   Container,
   Box,
@@ -17,36 +18,64 @@ const UploadChapter: React.FC = () => {
     content: '',
   });
   const [files, setFiles] = useState<FileList | null>(null);
-  const [message, setMessage] = useState<string>('');
+  const [loadingFetchWorkType, setLoadingFetchWorkType] = useState(true); // New loading state
+  const [errorFetchWorkType, setErrorFetchWorkType] = useState<string | null>(null); // New error state
+  const [loadingSubmit, setLoadingSubmit] = useState(false); // New loading state for submission
+  const [successMessage, setSuccessMessage] = useState<string | null>(null); // New success message state
+  const [errorMessage, setErrorMessage] = useState<string | null>(null); // New error message state
   const location = useLocation();
   const [workId, setWorkId] = useState<string | null>(null);
   const [workType, setWorkType] = useState<'novel' | 'manga' | 'comic' | null>(null);
+
+  const resetMessages = () => {
+    setSuccessMessage(null);
+    setErrorMessage(null);
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
     const id = params.get('workId');
     if (id) {
       setWorkId(id);
+      setLoadingFetchWorkType(true);
+      setErrorFetchWorkType(null);
       // Fetch work type to conditionally show content/upload field
       api.get(`/api/works/${id}`)
-        .then(res => setWorkType(res.data.type))
-        .catch(err => console.error('Failed to fetch work type', err));
+        .then(res => {
+          setWorkType(res.data.type);
+          setLoadingFetchWorkType(false);
+        })
+        .catch((err: any) => {
+          console.error('Failed to fetch work type', err);
+          setErrorFetchWorkType(err.response?.data?.message || 'Failed to fetch work type.');
+          setLoadingFetchWorkType(false);
+        });
+    } else {
+        setLoadingFetchWorkType(false); // No workId, so no need to fetch
+        setErrorFetchWorkType('Work ID is missing in URL.');
     }
   }, [location]);
 
   const { chapterNumber, title, content } = formData;
 
-  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+  const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
+    resetMessages();
+  };
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setFiles(e.target.files);
+    resetMessages();
   };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    setLoadingSubmit(true);
+    resetMessages();
+
     if (!workId) {
-      setMessage('Work ID is missing.');
+      setErrorMessage('Work ID is missing.');
+      setLoadingSubmit(false);
       return;
     }
 
@@ -62,9 +91,13 @@ const UploadChapter: React.FC = () => {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
             chapterContent = res.data.filenames;
-        } catch (err) {
-            console.error(err);
-            setMessage('File upload failed.');
+        } catch (err: unknown) {
+            if (axios.isAxiosError(err)) {
+              setErrorMessage(err.response?.data?.message || 'File upload failed.');
+            } else {
+              setErrorMessage('An unexpected error occurred during file upload.');
+            }
+            setLoadingSubmit(false);
             return;
         }
     }
@@ -76,28 +109,36 @@ const UploadChapter: React.FC = () => {
     };
 
     try {
-      const token = localStorage.getItem('token');
-      const config = {
-        headers: {
-          'Content-Type': 'application/json',
-          'x-auth-token': token,
-        },
-      };
-      const res = await api.post(
+      await api.post(
         `/api/works/${workId}/chapters`,
-        chapterData,
-        config
+        chapterData
       );
-      console.log(res.data);
-      setMessage('Chapter uploaded successfully!');
-    } catch (err: any) {
-      console.error(err.response.data);
-      setMessage('Failed to upload chapter.');
+      setSuccessMessage('Chapter uploaded successfully!');
+      setFormData({ // Optionally reset form data on success
+        chapterNumber: 1, title: '', content: '',
+      });
+      setFiles(null);
+    } catch (err: unknown) {
+      if (axios.isAxiosError(err)) {
+        setErrorMessage(err.response?.data?.message || 'Failed to upload chapter.');
+      } else {
+        setErrorMessage('An unexpected error occurred during chapter upload.');
+      }
+    } finally {
+      setLoadingSubmit(false);
     }
   };
 
+  if (loadingFetchWorkType) {
+    return <Typography>Loading work details...</Typography>;
+  }
+
+  if (errorFetchWorkType) {
+    return <Typography color="error">Error: {errorFetchWorkType}</Typography>;
+  }
+
   if (!workId) {
-    return <Typography sx={{ mt: 4 }}>Work not specified.</Typography>;
+    return <Typography sx={{ mt: 4 }}>Work not specified. Please navigate from a work page.</Typography>;
   }
 
   return (
@@ -106,6 +147,16 @@ const UploadChapter: React.FC = () => {
         <Typography variant="h4" component="h1" gutterBottom>
           Upload New Chapter
         </Typography>
+        {successMessage && (
+          <Typography color="success.main" variant="body2" sx={{ mb: 2 }}>
+            {successMessage}
+          </Typography>
+        )}
+        {errorMessage && (
+          <Typography color="error" variant="body2" sx={{ mb: 2 }}>
+            {errorMessage}
+          </Typography>
+        )}
         <TextField
           label="Chapter Number"
           name="chapterNumber"
@@ -115,6 +166,7 @@ const UploadChapter: React.FC = () => {
           fullWidth
           required
           margin="normal"
+          disabled={loadingSubmit}
         />
         <TextField
           label="Title"
@@ -124,6 +176,7 @@ const UploadChapter: React.FC = () => {
           fullWidth
           required
           margin="normal"
+          disabled={loadingSubmit}
         />
         {workType === 'novel' ? (
           <TextField
@@ -135,12 +188,13 @@ const UploadChapter: React.FC = () => {
             multiline
             rows={10}
             margin="normal"
+            disabled={loadingSubmit}
           />
         ) : (
           <Box sx={{ mt: 2 }}>
-            <Button variant="contained" component="label">
+            <Button variant="contained" component="label" disabled={loadingSubmit}>
               Upload Chapter Pages
-              <input type="file" hidden multiple onChange={onFileChange} />
+              <input type="file" hidden multiple onChange={onFileChange} disabled={loadingSubmit} />
             </Button>
             {files && <Typography sx={{ mt: 1 }}>{files.length} files selected</Typography>}
           </Box>
@@ -150,10 +204,10 @@ const UploadChapter: React.FC = () => {
           variant="contained"
           fullWidth
           sx={{ mt: 3 }}
+          disabled={loadingSubmit}
         >
-          Create Chapter
+          {loadingSubmit ? 'Creating Chapter...' : 'Create Chapter'}
         </Button>
-        {message && <FormHelperText sx={{ mt: 2 }}>{message}</FormHelperText>}
       </Box>
     </Container>
   );
