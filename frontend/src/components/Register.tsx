@@ -60,7 +60,7 @@ const Register: React.FC = () => {
         }}
       >
         <Typography component="h1" variant="h5">
-          Sign up
+          Register / Sign up
         </Typography>
         <Box component="form" onSubmit={onSubmit} sx={{ mt: 3 }}>
           {error && (
@@ -106,7 +106,7 @@ const Register: React.FC = () => {
             <Grid item>
               <RouterLink to="/login" style={{ textDecoration: 'none' }}>
                 <Typography variant="body2" color="secondary">
-                  Already have an account? Sign in
+                  Already have an account? Sign in / Login
                 </Typography>
               </RouterLink>
             </Grid>

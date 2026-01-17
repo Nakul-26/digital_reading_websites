@@ -16,7 +16,7 @@ export default async function (req: AuthRequest, res: Response, next: NextFuncti
 
   // Check if not token
   if (!token) {
-    return next(new HttpError(401, 'No token, authorization denied'));
+    return next();
   }
 
   // Verify token

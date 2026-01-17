@@ -28,7 +28,7 @@ router.post(
       check('isPublished', 'isPublished is required').isBoolean(),
     ],
   ],
-  async (req: AuthRequest, res: any, next: NextFunction) => {
+  async (req: AuthRequest, res: any, next: any) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       throw new HttpError(400, 'Validation failed', errors.array());
@@ -64,7 +64,7 @@ router.post(
 // @route   GET /works
 // @desc    Get all works
 // @access  Public
-router.get('/', async (req, res, next: NextFunction) => {
+router.get('/', auth, async (req: AuthRequest, res: any, next: any) => {
   try {
     const works = await Work.find({ isPublished: true }).populate('author', ['_id', 'username']);
     res.json(works);
@@ -77,7 +77,7 @@ router.get('/', async (req, res, next: NextFunction) => {
 // @route   GET /works/my-works
 // @desc    Get current user's works
 // @access  Private
-router.get('/my-works', auth, async (req: AuthRequest, res: any, next: NextFunction) => {
+router.get('/my-works', auth, async (req: AuthRequest, res: any, next: any) => {
   try {
     const works = await Work.find({ author: req.user!.id }).populate('author', ['_id', 'username']);
     res.json(works);
@@ -90,7 +90,7 @@ router.get('/my-works', auth, async (req: AuthRequest, res: any, next: NextFunct
 // @route   GET /works/:id
 // @desc    Get work by ID
 // @access  Public
-router.get('/:id', auth, async (req: AuthRequest, res: any, next: NextFunction) => {
+router.get('/:id', async (req: AuthRequest, res: any, next: any) => {
   try {
     const work = await Work.findById(req.params.id).populate('author', ['_id', 'username']);
     if (!work) {
@@ -118,7 +118,7 @@ router.get('/:id', auth, async (req: AuthRequest, res: any, next: NextFunction) 
 // @route   GET /works/:workId/chapters
 // @desc    Get all chapters for a work
 // @access  Public
-router.get('/:workId/chapters', async (req, res, next: NextFunction) => {
+router.get('/:workId/chapters', async (req, res, next: any) => {
   try {
     const chapters = await Chapter.find({ work: req.params.workId }).sort({ chapterNumber: 1 });
     res.json(chapters);
@@ -141,7 +141,7 @@ router.post(
       check('content', 'Content is required').not().isEmpty(),
     ],
   ],
-  async (req: AuthRequest, res: any, next: NextFunction) => {
+  async (req: AuthRequest, res: any, next: any) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
       throw new HttpError(400, 'Validation failed', errors.array());
@@ -185,15 +185,15 @@ router.put('/:id', auth, async (req: AuthRequest, res: any, next: NextFunction) 
 
   // Build work object
   const workFields: any = {};
-  if (title) workFields.title = title;
-  if (description) workFields.description = description;
-  if (coverImageUrl) workFields.coverImageUrl = coverImageUrl;
-  if (genres) workFields.genres = genres;
-  if (tags) workFields.tags = tags;
-  if (status) workFields.status = status;
-  if (language) workFields.language = language;
-  if (isPublished) workFields.isPublished = isPublished;
-  if (contentWarnings) workFields.contentWarnings = contentWarnings;
+  if (req.body.hasOwnProperty('title')) workFields.title = title;
+  if (req.body.hasOwnProperty('description')) workFields.description = description;
+  if (req.body.hasOwnProperty('coverImageUrl')) workFields.coverImageUrl = coverImageUrl;
+  if (req.body.hasOwnProperty('genres')) workFields.genres = genres;
+  if (req.body.hasOwnProperty('tags')) workFields.tags = tags;
+  if (req.body.hasOwnProperty('status')) workFields.status = status;
+  if (req.body.hasOwnProperty('language')) workFields.language = language;
+  if (req.body.hasOwnProperty('isPublished')) workFields.isPublished = isPublished;
+  if (req.body.hasOwnProperty('contentWarnings')) workFields.contentWarnings = contentWarnings;
 
   try {
     let work = await Work.findById(req.params.id);
@@ -222,7 +222,7 @@ router.put('/:id', auth, async (req: AuthRequest, res: any, next: NextFunction) 
 // @route   DELETE /works/:id
 // @desc    Delete a work
 // @access  Private
-router.delete('/:id', auth, async (req: AuthRequest, res: any, next: NextFunction) => {
+router.delete('/:id', auth, async (req: AuthRequest, res: any, next: any) => {
   try {
     const work = await Work.findById(req.params.id);
 

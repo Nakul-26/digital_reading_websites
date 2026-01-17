@@ -74,9 +74,9 @@ const Navbar = () => {
               <Button component={RouterLink} to="/login" color="inherit">
                 Login
               </Button>
-              <Button component={RouterLink} to="/register" color="inherit">
+              {/* <Button component={RouterLink} to="/register" color="inherit">
                 Register
-              </Button>
+              </Button> */}
             </>
           )}
           <IconButton
