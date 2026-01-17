@@ -68,35 +68,31 @@ const Register: React.FC = () => {
               {error}
             </Typography>
           )}
-          <Grid container>
-            <Grid item xs={12} sx={{ mb: 2 }}>
-              <TextField
-                required
-                fullWidth
-                id="username"
-                label="Username"
-                name="username"
-                autoComplete="username"
-                value={username}
-                onChange={onChange}
-                disabled={loading} // Disable during loading
-              />
-            </Grid>
-            <Grid item xs={12}>
-              <TextField
-                required
-                fullWidth
-                name="password"
-                label="Password"
-                type="password"
-                id="password"
-                autoComplete="new-password"
-                value={password}
-                onChange={onChange}
-                disabled={loading} // Disable during loading
-              />
-            </Grid>
-          </Grid>
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            id="username"
+            label="Username"
+            name="username"
+            autoComplete="username"
+            value={username}
+            onChange={onChange}
+            disabled={loading} // Disable during loading
+          />
+          <TextField
+            margin="normal"
+            required
+            fullWidth
+            name="password"
+            label="Password"
+            type="password"
+            id="password"
+            autoComplete="new-password"
+            value={password}
+            onChange={onChange}
+            disabled={loading} // Disable during loading
+          />
           <Button
             type="submit"
             fullWidth

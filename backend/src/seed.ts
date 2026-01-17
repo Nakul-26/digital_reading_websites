@@ -45,6 +45,7 @@ const seedDB = async () => {
       type: 'novel',
       description: 'A sci-fi epic about the last of humanity facing a cosmic threat.',
       author: sampleUser._id,
+      isPublished: true, // Mark novel as published
     });
     await novel.save();
     console.log('Created sample novel.');
@@ -73,6 +74,7 @@ const seedDB = async () => {
       type: 'manga',
       description: 'In a feudal world, a cursed samurai seeks a way to break his immortality.',
       author: sampleUser._id,
+      isPublished: true, // Mark manga as published
     });
     await manga.save();
     console.log('Created sample manga.');
