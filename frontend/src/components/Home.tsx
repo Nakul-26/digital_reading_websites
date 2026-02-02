@@ -9,6 +9,7 @@ import {
   CardActionArea,
   CardMedia,
   Chip,
+  Container,
 } from '@mui/material';
 import { api } from '../api';
 
@@ -54,9 +55,9 @@ const Home: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   return (
-    <Box>
+    <Container maxWidth="lg" sx={{ py: 4 }}>
       {/* Welcome Section */}
-      <Box sx={{ p: 4, mb: 4 }}>
+      <Box sx={{ p: { xs: 2, md: 4 }, mb: 4, textAlign: 'center' }}>
         <Typography variant="h3" component="h1" gutterBottom>
           Welcome to Novel Website
         </Typography>
@@ -68,7 +69,7 @@ const Home: React.FC = () => {
       {/* Featured Work */}
       {featuredWork && (
         <Box mb={4}>
-          <Typography variant="h4" component="h2" gutterBottom>
+          <Typography variant="h4" component="h2" gutterBottom sx={{ mb: 2 }}>
             Featured Work
           </Typography>
           <Card
@@ -89,12 +90,12 @@ const Home: React.FC = () => {
               sx={{ borderRadius: '16px' }}
             >
               <Grid container>
-                <Grid xs={12} md={4}>
+                <Grid item xs={12} md={4}>
                   <CardMedia
                     component="img"
                     sx={{
                       width: '100%',
-                      height: 300,
+                      height: { xs: 250, sm: 350 },
                       objectFit: 'cover',
                       borderTopLeftRadius: '16px',
                       borderBottomLeftRadius: { xs: 0, md: '16px' },
@@ -109,7 +110,7 @@ const Home: React.FC = () => {
                   />
                 </Grid>
                 <Grid item xs={12} md={8}>
-                  <CardContent sx={{ p: 2.5 }}>
+                  <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                     <Typography gutterBottom variant="h4" component="div">
                       {featuredWork.title}
                     </Typography>
@@ -141,7 +142,7 @@ const Home: React.FC = () => {
       )}
 
       {/* All Works */}
-      <Typography variant="h4" component="h2" gutterBottom>
+      <Typography variant="h4" component="h2" gutterBottom sx={{ mt: 4, mb: 2 }}>
         All Works
       </Typography>
       <Grid container spacing={3}>
@@ -166,7 +167,7 @@ const Home: React.FC = () => {
               >
                 <CardMedia
                   component="img"
-                  sx={{ height: 200, objectFit: 'cover', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}
+                  sx={{ height: 250, objectFit: 'cover', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}
                   image={
                     work.coverImageUrl
                       ? `${apiUrl}/uploads/${work.coverImageUrl}`
@@ -204,7 +205,7 @@ const Home: React.FC = () => {
           </Grid>
         ))}
       </Grid>
-    </Box>
+    </Container>
   );
 };
 

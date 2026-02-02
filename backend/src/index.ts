@@ -4,7 +4,6 @@ import dotenv from 'dotenv';
 import { MongoClient, ServerApiVersion } from 'mongodb';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
-import rateLimit from 'express-rate-limit';
 import path from 'path';
 import multer from 'multer';
 
@@ -13,19 +12,19 @@ import worksRoutes from './routes/works';
 import chaptersRoutes from './routes/chapters';
 import adminRoutes from './routes/admin';
 import { HttpError } from './utils/HttpError';
+import { apiLimiter, authLimiter, uploadLimiter } from './middleware/rateLimiters';
 
 dotenv.config();
 const app = express();
 
 // --- Rate Limiter ---
-const limiter = rateLimit({
-  windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
-  standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
-  legacyHeaders: false, // Disable the `X-RateLimit-*` headers
-});
-
-app.use(limiter);
+// Apply limiters to specific routes.
+// The general 'apiLimiter' applies to all '/api' routes, while more
+// specific limiters add extra protection to sensitive endpoints.
+app.use('/api', apiLimiter);
+app.use('/api/auth', authLimiter);
+app.use('/api/works', uploadLimiter);
+app.use('/api/chapters', uploadLimiter);
 
 // --- MongoDB Client ---
 const uri = process.env.MONGO_URI;
@@ -102,7 +101,7 @@ const storage = multer.diskStorage({
 
 const upload = multer({ storage });
 
-app.post('/api/upload', upload.single('file'), (req: Request, res: Response) => {
+app.post('/api/upload', uploadLimiter, upload.single('file'), (req: Request, res: Response) => {
     if (!req.file) {
         return res.status(400).send('No file uploaded.');
     }
@@ -112,7 +111,7 @@ app.post('/api/upload', upload.single('file'), (req: Request, res: Response) => 
     });
 });
 
-app.post('/api/upload-multiple', upload.array('files'), (req: Request, res: Response) => {
+app.post('/api/upload-multiple', uploadLimiter, upload.array('files'), (req: Request, res: Response) => {
     if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
         return res.status(400).send('No files uploaded.');
     }

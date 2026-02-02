@@ -124,17 +124,18 @@ const WorkPage: React.FC = () => {
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   return (
-    <Container>
-      <Paper sx={{ p: 4, mt: 4 }}>
-        <Grid container spacing={4}>
+    <Container sx={{ py: 4 }}>
+      <Paper sx={{ p: { xs: 2, sm: 3, md: 4 }, mt: 4 }}>
+        <Grid container spacing={{ xs: 2, md: 4 }}>
           <Grid item xs={12} md={4}>
             <Box
               component="img"
               sx={{
                 width: '100%',
                 height: 'auto',
-                maxHeight: 500,
+                maxHeight: { xs: 400, md: 500 },
                 objectFit: 'cover',
+                borderRadius: 2,
               }}
               src={work.coverImageUrl ? `${apiUrl}/uploads/${work.coverImageUrl}` : 'https://via.placeholder.com/300x450'}
               alt={work.title}
@@ -147,30 +148,34 @@ const WorkPage: React.FC = () => {
             <Typography variant="h6" color="text.secondary" gutterBottom>
               by {work.author.username}
             </Typography>
-            <Typography variant="body1" paragraph>
+            <Typography variant="body1" paragraph sx={{ my: 2 }}>
               {work.description}
             </Typography>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
+              <Typography variant="subtitle2" sx={{ alignSelf: 'center', mr: 1 }}>Genres:</Typography>
               {work.genres.map(genre => <Chip key={genre} label={genre} />)}
             </Box>
             <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap', mb: 2 }}>
-              {work.tags.map(tag => <Chip key={tag} label={tag} />)}
+              <Typography variant="subtitle2" sx={{ alignSelf: 'center', mr: 1 }}>Tags:</Typography>
+              {work.tags.map(tag => <Chip key={tag} label={tag} size="small" />)}
             </Box>
             <Typography variant="body2">Status: {work.status}</Typography>
             <Typography variant="body2">Language: {work.language}</Typography>
             <Typography variant="body2">Published: {work.isPublished ? 'Yes' : 'No'}</Typography>
-            <Box sx={{ mt: 2 }}>
-              <Typography variant="subtitle2">Content Warnings:</Typography>
-              <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
-                {work.contentWarnings.map(warning => <Chip key={warning} label={warning} color="warning" />)}
+            {work.contentWarnings.length > 0 && (
+              <Box sx={{ mt: 2 }}>
+                <Typography variant="subtitle2">Content Warnings:</Typography>
+                <Box sx={{ display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                  {work.contentWarnings.map(warning => <Chip key={warning} label={warning} color="warning" size="small" />)}
+                </Box>
               </Box>
-            </Box>
+            )}
             {isAuthor && (
               <Button
                 variant="contained"
                 component={RouterLink}
                 to={`/upload-chapter?workId=${work._id}`}
-                sx={{ mt: 2 }}
+                sx={{ mt: 3 }}
               >
                 Upload Chapter
               </Button>
@@ -197,14 +202,14 @@ const WorkPage: React.FC = () => {
                     disablePadding
                     secondaryAction={
                       isAuthor && (
-                        <>
+                        <Stack direction="row" spacing={1}>
                           <IconButton edge="end" aria-label="edit" component={RouterLink} to={`/edit-chapter/${chapter._id}`}>
                             <EditIcon />
                           </IconButton>
                           <IconButton edge="end" aria-label="delete" onClick={() => handleClickOpen(chapter)}>
                             <DeleteIcon />
                           </IconButton>
-                        </>
+                        </Stack>
                       )
                     }
                   >
@@ -212,7 +217,7 @@ const WorkPage: React.FC = () => {
                       component={RouterLink}
                       to={`/chapters/${chapter._id}`}
                       sx={{
-                        px: 3,
+                        px: { xs: 2, md: 3 },
                         py: 1.5,
                         '&:hover': {
                           backgroundColor: 'action.hover',

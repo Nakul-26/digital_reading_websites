@@ -53,7 +53,7 @@ const Register: React.FC = () => {
     <Container maxWidth="xs">
       <Box
         sx={{
-          marginTop: 8,
+          marginTop: { xs: 4, sm: 8 },
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',

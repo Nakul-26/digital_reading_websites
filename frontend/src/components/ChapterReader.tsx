@@ -59,7 +59,7 @@ const ChapterReader: React.FC = () => {
           Chapter {chapter.chapterNumber}: {chapter.title}
         </Typography>
         {isNovel && typeof chapter.content === 'string' ? (
-          <Typography component="div" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.8, fontSize: '1.1rem' }}>
+          <Typography component="div" sx={{ whiteSpace: 'pre-wrap', lineHeight: 1.8, fontSize: { xs: '1rem', sm: '1.1rem' } }}>
             {chapter.content}
           </Typography>
         ) : (

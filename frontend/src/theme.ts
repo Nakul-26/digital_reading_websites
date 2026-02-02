@@ -40,12 +40,78 @@ const getTheme = (mode: 'light' | 'dark'): Theme => createTheme({
 
   typography: {
     fontFamily: '"Roboto", "Helvetica", "Arial", sans-serif',
-    h1: { fontSize: '2.25rem', fontWeight: 700 },
-    h2: { fontSize: '2rem', fontWeight: 600 },
-    h3: { fontSize: '1.75rem', fontWeight: 600 },
-    h4: { fontSize: '1.5rem', fontWeight: 500 },
-    h5: { fontSize: '1.25rem', fontWeight: 500 },
-    h6: { fontSize: '1rem', fontWeight: 500 },
+    h1: {
+      fontSize: '2rem', // mobile
+      '@media (min-width:600px)': {
+        fontSize: '2.5rem', // tablet
+      },
+      '@media (min-width:900px)': {
+        fontSize: '3rem', // desktop
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '3.5rem', // large desktop
+      },
+    },
+    h2: {
+      fontSize: '1.75rem',
+      '@media (min-width:600px)': {
+        fontSize: '2rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '2.5rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '2.75rem',
+      },
+    },
+    h3: {
+      fontSize: '1.5rem',
+      '@media (min-width:600px)': {
+        fontSize: '1.75rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '2rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '2.25rem',
+      },
+    },
+    h4: {
+      fontSize: '1.25rem',
+      '@media (min-width:600px)': {
+        fontSize: '1.5rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.75rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '2rem',
+      },
+    },
+    h5: {
+      fontSize: '1.1rem',
+      '@media (min-width:600px)': {
+        fontSize: '1.2rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.3rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.4rem',
+      },
+    },
+    h6: {
+      fontSize: '1rem',
+      '@media (min-width:600px)': {
+        fontSize: '1.05rem',
+      },
+      '@media (min-width:900px)': {
+        fontSize: '1.1rem',
+      },
+      '@media (min-width:1200px)': {
+        fontSize: '1.15rem',
+      },
+    },
   },
 
   shape: {
