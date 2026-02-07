@@ -1,8 +1,11 @@
+import { NextFunction } from 'express';
 import express from 'express';
 import auth from '../middleware/auth';
 import admin from '../middleware/admin';
 import User from '../models/User';
 import { HttpError } from '../utils/HttpError';
+import Work from '../models/Work';
+import Feedback from '../models/Feedback';
 
 const router = express.Router();
 
@@ -30,6 +33,19 @@ router.get('/works', [auth, admin], async (req, res, next: NextFunction) => {
     console.error(err.message);
     next(err);
   }
+});
+
+// @route   GET /admin/feedback
+// @desc    Get all feedback
+// @access  Admin
+router.get('/feedback', [auth, admin], async (req, res, next: NextFunction) => {
+    try {
+        const feedback = await Feedback.find().sort({ createdAt: -1 });
+        res.json(feedback);
+    } catch (err: any) {
+        console.error(err.message);
+        next(err);
+    }
 });
 
 export default router;

@@ -34,3 +34,8 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+export const submitFeedback = async (feedback: { name: string; email: string; message: string }) => {
+    const { data } = await api.post("/api/feedback", feedback);
+    return data;
+};

@@ -25,6 +25,7 @@ import ProtectedRoute from './components/ProtectedRoute';
 import GuestRoute from './components/GuestRoute';
 import AdminDashboard from './components/AdminDashboard';
 import AdminRoute from './components/AdminRoute';
+import Feedback from './components/Feedback';
 import './App.css';
 
 const App: React.FC = () => {
@@ -52,6 +53,7 @@ const App: React.FC = () => {
               <Route path="/" element={<Home />} />
               <Route path="/works/:id" element={<WorkPage />} />
               <Route path="/chapters/:id" element={<ChapterReader />} />
+              <Route path="/feedback" element={<Feedback />} />
               <Route element={<ProtectedRoute />}>
                 <Route path="/my-works" element={<MyWorks />} />
                 <Route path="/upload-work" element={<UploadWork />} />

@@ -58,6 +58,11 @@ const Navbar = () => {
             <ListItemText primary="Home" />
           </ListItemButton>
         </ListItem>
+        <ListItem disablePadding>
+          <ListItemButton component={RouterLink} to="/feedback">
+            <ListItemText primary="Feedback" />
+          </ListItemButton>
+        </ListItem>
         {isAuthenticated ? (
           <>
             <ListItem disablePadding>
@@ -118,6 +123,9 @@ const Navbar = () => {
             <Stack direction="row" spacing={1} alignItems="center">
               <Button component={RouterLink} to="/" color="inherit">
                 Home
+              </Button>
+              <Button component={RouterLink} to="/feedback" color="inherit">
+                Feedback
               </Button>
               {isAuthenticated ? (
                 <>

@@ -11,6 +11,7 @@ import authRoutes from './routes/auth';
 import worksRoutes from './routes/works';
 import chaptersRoutes from './routes/chapters';
 import adminRoutes from './routes/admin';
+import feedbackRoutes from './routes/feedback';
 import { HttpError } from './utils/HttpError';
 import { apiLimiter, authLimiter, uploadLimiter } from './middleware/rateLimiters';
 
@@ -128,6 +129,7 @@ app.use('/api/auth', authRoutes);
 app.use('/api/works', worksRoutes);
 app.use('/api/chapters', chaptersRoutes);
 app.use('/api/admin', adminRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 app.get("/", (req, res) => {
   res.send("API is working");
