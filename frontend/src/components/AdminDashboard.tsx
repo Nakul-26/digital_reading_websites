@@ -17,7 +17,7 @@ import {
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
-import { api } from '../api';
+import { api, getAdminFeedback } from '../api';
 
 interface IUser {
   _id: string;
@@ -34,13 +34,24 @@ interface IWork {
   };
 }
 
+interface IFeedback {
+  _id: string;
+  name: string;
+  email: string;
+  message: string;
+  createdAt: string;
+}
+
 const AdminDashboard: React.FC = () => {
   const [users, setUsers] = useState<IUser[]>([]);
   const [works, setWorks] = useState<IWork[]>([]);
+  const [feedback, setFeedback] = useState<IFeedback[]>([]);
   const [loadingUsers, setLoadingUsers] = useState(true); // New loading state for users
   const [errorUsers, setErrorUsers] = useState<string | null>(null); // New error state for users
   const [loadingWorks, setLoadingWorks] = useState(true); // New loading state for works
   const [errorWorks, setErrorWorks] = useState<string | null>(null); // New error state for works
+  const [loadingFeedback, setLoadingFeedback] = useState(true); // New loading state for feedback
+  const [errorFeedback, setErrorFeedback] = useState<string | null>(null); // New error state for feedback
   const [loadingDelete, setLoadingDelete] = useState(false); // New loading state for delete operation
   const [errorDelete, setErrorDelete] = useState<string | null>(null); // New error state for delete operation
 
@@ -72,8 +83,22 @@ const AdminDashboard: React.FC = () => {
         setLoadingWorks(false);
       }
     };
+    const fetchFeedback = async () => {
+      setLoadingFeedback(true);
+      setErrorFeedback(null);
+      try {
+        const res = await getAdminFeedback();
+        setFeedback(res);
+      } catch (err: any) {
+        console.error(err);
+        setErrorFeedback(err.response?.data?.message || 'Failed to load feedback.');
+      } finally {
+        setLoadingFeedback(false);
+      }
+    };
     fetchUsers();
     fetchWorks();
+    fetchFeedback();
   }, []);
 
   const handleDeleteWork = async (id: string) => {
@@ -171,6 +196,42 @@ const AdminDashboard: React.FC = () => {
                       <DeleteIcon />
                     </IconButton>
                   </TableCell>
+                </TableRow>
+              ))}
+            </TableBody>
+          </Table>
+        </TableContainer>
+      )}
+
+      <Typography variant="h5" component="h2" gutterBottom sx={{ mt: 4 }}>
+        Feedback
+      </Typography>
+      {loadingFeedback ? (
+        <Box display="flex" justifyContent="center" my={4}>
+          <CircularProgress />
+        </Box>
+      ) : errorFeedback ? (
+        <Typography color="error">Error: {errorFeedback}</Typography>
+      ) : feedback.length === 0 ? (
+        <Typography>No feedback found.</Typography>
+      ) : (
+        <TableContainer component={Paper}>
+          <Table>
+            <TableHead>
+              <TableRow>
+                <TableCell>Name</TableCell>
+                <TableCell>Email</TableCell>
+                <TableCell>Message</TableCell>
+                <TableCell>Submitted</TableCell>
+              </TableRow>
+            </TableHead>
+            <TableBody>
+              {feedback.map((item) => (
+                <TableRow key={item._id}>
+                  <TableCell>{item.name}</TableCell>
+                  <TableCell>{item.email}</TableCell>
+                  <TableCell>{item.message}</TableCell>
+                  <TableCell>{new Date(item.createdAt).toLocaleString()}</TableCell>
                 </TableRow>
               ))}
             </TableBody>

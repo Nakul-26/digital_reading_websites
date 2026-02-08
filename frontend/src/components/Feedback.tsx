@@ -16,6 +16,24 @@ const Feedback = () => {
     const [success, setSuccess] = useState(false);
     const [error, setError] = useState("");
 
+    const extractErrorMessage = (err: any) => {
+        const data = err?.response?.data;
+        if (data?.message) {
+            if (Array.isArray(data?.data)) {
+                const details = data.data.map((e: any) => e.msg || e.message).join(", ");
+                return details ? `${data.message}: ${details}` : data.message;
+            }
+            return data.message;
+        }
+        if (Array.isArray(data?.errors)) {
+            return data.errors.map((e: any) => e.msg || e.message).join(", ");
+        }
+        if (err?.message) {
+            return err.message;
+        }
+        return "Failed to submit feedback.";
+    };
+
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         setError("");
@@ -28,7 +46,7 @@ const Feedback = () => {
             setEmail("");
             setMessage("");
         } catch (err: any) {
-            setError(err.message || "Failed to submit feedback.");
+            setError(extractErrorMessage(err));
         }
     };
 

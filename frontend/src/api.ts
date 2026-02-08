@@ -39,3 +39,8 @@ export const submitFeedback = async (feedback: { name: string; email: string; me
     const { data } = await api.post("/api/feedback", feedback);
     return data;
 };
+
+export const getAdminFeedback = async () => {
+    const { data } = await api.get("/api/admin/feedback");
+    return data;
+};

@@ -53,8 +53,8 @@ const App: React.FC = () => {
               <Route path="/" element={<Home />} />
               <Route path="/works/:id" element={<WorkPage />} />
               <Route path="/chapters/:id" element={<ChapterReader />} />
-              <Route path="/feedback" element={<Feedback />} />
               <Route element={<ProtectedRoute />}>
+                <Route path="/feedback" element={<Feedback />} />
                 <Route path="/my-works" element={<MyWorks />} />
                 <Route path="/upload-work" element={<UploadWork />} />
                 <Route path="/upload-chapter" element={<UploadChapter />} />
