@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { NextFunction } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
@@ -11,7 +11,7 @@ dotenv.config();
 const router = express.Router();
 
 // Register
-router.post('/register', async (req, res) => {
+router.post('/register', async (req, res, next: NextFunction) => {
   const { username, password } = req.body;
 
   try {
@@ -49,7 +49,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Login
-router.post('/login', async (req, res) => {
+router.post('/login', async (req, res, next: NextFunction) => {
   const { username, password } = req.body;
 
   try {
@@ -85,7 +85,7 @@ router.post('/login', async (req, res) => {
 });
 
 // Get logged in user
-router.get('/me', auth, async (req: any, res) => {
+router.get('/me', auth, async (req: any, res, next: NextFunction) => {
   try {
     const user = await User.findById(req.user.id).select('-password');
     res.json(user);

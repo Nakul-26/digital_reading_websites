@@ -94,3 +94,6 @@ $RECYCLE.BIN/
 node_modules
 dist
 build
+
+.user_details
+/user_details

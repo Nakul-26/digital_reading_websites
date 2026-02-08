@@ -64,16 +64,21 @@ app.use(express.json());
 app.use(cookieParser());
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
-mongoose.connect(uri, {
-  dbName: 'novel_website', // You might want to change this
+const dbName = process.env.MONGO_DB_NAME;
+const mongooseOptions: mongoose.ConnectOptions = {
   serverSelectionTimeoutMS: 20000 // Increase timeout for stability
-})
-    .then(() => {
-        console.log("✅ Connected to MongoDB via Mongoose");
-    })
-    .catch((err) => {
-        console.error("❌ Mongoose connection error:", err);
-    });
+};
+if (dbName) {
+  mongooseOptions.dbName = dbName;
+}
+
+mongoose.connect(uri, mongooseOptions)
+  .then(() => {
+    console.log("Connected to MongoDB via Mongoose");
+  })
+  .catch((err) => {
+    console.error("Mongoose connection error:", err);
+  });
 
 // Logging middleware
 app.use((req: Request, res: Response, next: NextFunction) => {
