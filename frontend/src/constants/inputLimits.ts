@@ -1,0 +1,16 @@
+export const INPUT_LIMITS = {
+  username: 30,
+  password: 128,
+  feedbackName: 80,
+  feedbackEmail: 254,
+  feedbackMessage: 2000,
+  workTitle: 120,
+  workDescription: 5000,
+  workListField: 1700,
+  workLanguage: 40,
+  chapterTitle: 200,
+  chapterContent: 200000,
+  chapterComment: 1000,
+  chapterNumberMin: 1,
+  chapterNumberMax: 100000,
+} as const;

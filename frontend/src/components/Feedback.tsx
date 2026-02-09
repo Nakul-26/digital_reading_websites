@@ -8,6 +8,7 @@ import {
     Alert,
 } from "@mui/material";
 import * as api from "../api";
+import { INPUT_LIMITS } from "../constants/inputLimits";
 
 const Feedback = () => {
     const [name, setName] = useState("");
@@ -64,6 +65,7 @@ const Feedback = () => {
                         fullWidth
                         margin="normal"
                         required
+                        inputProps={{ maxLength: INPUT_LIMITS.feedbackName }}
                     />
                     <TextField
                         label="Email"
@@ -73,6 +75,7 @@ const Feedback = () => {
                         fullWidth
                         margin="normal"
                         required
+                        inputProps={{ maxLength: INPUT_LIMITS.feedbackEmail }}
                     />
                     <TextField
                         label="Message"
@@ -83,6 +86,7 @@ const Feedback = () => {
                         required
                         multiline
                         rows={4}
+                        inputProps={{ maxLength: INPUT_LIMITS.feedbackMessage }}
                     />
                     <Button
                         type="submit"

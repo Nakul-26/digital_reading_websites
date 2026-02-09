@@ -1,4 +1,4 @@
-import { NextFunction } from 'express';
+import { NextFunction, Request, Response } from 'express';
 import express from 'express';
 import auth from '../middleware/auth';
 import admin from '../middleware/admin';
@@ -12,7 +12,7 @@ const router = express.Router();
 // @route   GET /admin/users
 // @desc    Get all users
 // @access  Admin
-router.get('/users', [auth, admin], async (req, res, next: NextFunction) => {
+router.get('/users', [auth, admin], async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const users = await User.find().select('-password');
     res.json(users);
@@ -25,7 +25,7 @@ router.get('/users', [auth, admin], async (req, res, next: NextFunction) => {
 // @route   GET /admin/works
 // @desc    Get all works (admin only, published and unpublished)
 // @access  Admin
-router.get('/works', [auth, admin], async (req, res, next: NextFunction) => {
+router.get('/works', [auth, admin], async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const works = await Work.find().populate('author', ['_id', 'username']);
     res.json(works);
@@ -38,7 +38,7 @@ router.get('/works', [auth, admin], async (req, res, next: NextFunction) => {
 // @route   GET /admin/feedback
 // @desc    Get all feedback
 // @access  Admin
-router.get('/feedback', [auth, admin], async (req, res, next: NextFunction) => {
+router.get('/feedback', [auth, admin], async (_req: Request, res: Response, next: NextFunction) => {
     try {
         const feedback = await Feedback.find().sort({ createdAt: -1 });
         res.json(feedback);

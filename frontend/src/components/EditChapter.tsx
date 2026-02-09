@@ -10,6 +10,7 @@ import {
   FormHelperText, // Added FormHelperText for messages
 } from '@mui/material';
 import { api } from '../api';
+import { INPUT_LIMITS } from '../constants/inputLimits';
 
 const EditChapter: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -117,6 +118,7 @@ const EditChapter: React.FC = () => {
           required
           margin="normal"
           disabled={loadingSubmit}
+          inputProps={{ maxLength: INPUT_LIMITS.chapterTitle }}
         />
         <TextField
           label="Content"
@@ -128,6 +130,7 @@ const EditChapter: React.FC = () => {
           rows={10}
           margin="normal"
           disabled={loadingSubmit}
+          inputProps={{ maxLength: INPUT_LIMITS.chapterContent }}
         />
         <Button
           type="submit"

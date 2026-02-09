@@ -1,14 +1,31 @@
-import express, { Request } from 'express';
-import { check, validationResult } from 'express-validator';
+import express, { NextFunction, Request, Response } from 'express';
 import auth from '../middleware/auth';
 import Work, { IWork } from '../models/Work';
-import User from '../models/User';
 import Chapter, { IChapter } from '../models/Chapter';
-
 import { IUser } from '../models/User';
 import { HttpError } from '../utils/HttpError';
+import { validateRequest } from '../middleware/validateRequest';
+import {
+  chapterCreateValidation,
+  idParamValidation,
+  workCreateValidation,
+  workUpdateValidation,
+} from '../middleware/validators';
 
 const router = express.Router();
+
+const updatableWorkFields = [
+  'title',
+  'type',
+  'description',
+  'coverImageUrl',
+  'genres',
+  'tags',
+  'status',
+  'language',
+  'isPublished',
+  'contentWarnings',
+] as const;
 
 interface AuthRequest extends Request {
   user?: IUser;
@@ -17,59 +34,55 @@ interface AuthRequest extends Request {
 // @route   POST /works
 // @desc    Create a work
 // @access  Private
-router.post(
-  '/',
-  [
-    auth,
-    [
-      check('title', 'Title is required').not().isEmpty(),
-      check('type', 'Type is required').isIn(['manga', 'novel', 'comic']),
-      check('status', 'Status is required').isIn(['ongoing', 'completed', 'hiatus']),
-      check('isPublished', 'isPublished is required').isBoolean(),
-    ],
-  ],
-  async (req: AuthRequest, res: any, next: any) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new HttpError(400, 'Validation failed', errors.array());
+router.post('/', auth, workCreateValidation, validateRequest, async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const currentUser = req.user;
+    if (!currentUser) {
+      throw new HttpError(401, 'Authentication required');
     }
 
-    const { title, type, description, coverImageUrl, genres, tags, status, language, isPublished, contentWarnings } = req.body;
+    const {
+      title,
+      type,
+      description,
+      coverImageUrl,
+      genres,
+      tags,
+      status,
+      language,
+      isPublished,
+      contentWarnings,
+    } = req.body;
 
-    try {
-      const newWork: IWork = new Work({
-        title,
-        type,
-        description,
-        coverImageUrl,
-        author: req.user!.id,
-        genres,
-        tags,
-        status,
-        language,
-        isPublished,
-        contentWarnings,
-      });
+    const newWork: IWork = new Work({
+      title,
+      type,
+      description,
+      coverImageUrl,
+      author: currentUser._id,
+      genres,
+      tags,
+      status,
+      language,
+      isPublished,
+      contentWarnings,
+    });
 
-      const work = await newWork.save();
-      res.json(work);
-    } catch (err: any) {
-      console.error(err.message);
-      next(err);
-    }
+    const work = await newWork.save();
+    res.json(work);
+  } catch (err) {
+    next(err);
   }
-);
-
+});
 
 // @route   GET /works
 // @desc    Get all works
 // @access  Public
-router.get('/', auth, async (req: AuthRequest, res: any, next: any) => {
+router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const works = await Work.find({ isPublished: true }).populate('author', ['_id', 'username']);
     res.json(works);
-  } catch (err: any) {
-    console.error(err.message);
+  } catch (err) {
     next(err);
   }
 });
@@ -77,12 +90,16 @@ router.get('/', auth, async (req: AuthRequest, res: any, next: any) => {
 // @route   GET /works/my-works
 // @desc    Get current user's works
 // @access  Private
-router.get('/my-works', auth, async (req: AuthRequest, res: any, next: any) => {
+router.get('/my-works', auth, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const works = await Work.find({ author: req.user!.id }).populate('author', ['_id', 'username']);
+    const currentUser = req.user;
+    if (!currentUser) {
+      throw new HttpError(401, 'Authentication required');
+    }
+
+    const works = await Work.find({ author: currentUser._id as any }).populate('author', ['_id', 'username']);
     res.json(works);
-  } catch (err: any) {
-    console.error(err.message);
+  } catch (err) {
     next(err);
   }
 });
@@ -90,40 +107,34 @@ router.get('/my-works', auth, async (req: AuthRequest, res: any, next: any) => {
 // @route   GET /works/:id
 // @desc    Get work by ID
 // @access  Public
-router.get('/:id', async (req: AuthRequest, res: any, next: any) => {
+router.get('/:id', auth, idParamValidation('id'), validateRequest, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
     const work = await Work.findById(req.params.id).populate('author', ['_id', 'username']);
     if (!work) {
       throw new HttpError(404, 'Work not found');
     }
 
-    // If work is not published, check authorization
     if (!work.isPublished) {
-      // If user is not authenticated or not the author/admin, deny access (return 404 for obscurity)
-      if (!req.user || (work.author.toString() !== req.user.id && req.user.role !== 'admin')) {
-        throw new HttpError(404, 'Work not found'); // Treat as not found to avoid leaking info
+      const currentUser = req.user;
+      if (!currentUser || (work.author.toString() !== currentUser.id && currentUser.role !== 'admin')) {
+        throw new HttpError(404, 'Work not found');
       }
     }
+
     res.json(work);
-  } catch (err: any) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      next(new HttpError(404, 'Work not found'));
-    } else {
-      next(err);
-    }
+  } catch (err) {
+    next(err);
   }
 });
 
 // @route   GET /works/:workId/chapters
 // @desc    Get all chapters for a work
 // @access  Public
-router.get('/:workId/chapters', async (req, res, next: any) => {
+router.get('/:workId/chapters', idParamValidation('workId'), validateRequest, async (req: Request, res: Response, next: NextFunction) => {
   try {
     const chapters = await Chapter.find({ work: req.params.workId }).sort({ chapterNumber: 1 });
     res.json(chapters);
-  } catch (err: any) {
-    console.error(err.message);
+  } catch (err) {
     next(err);
   }
 });
@@ -133,31 +144,25 @@ router.get('/:workId/chapters', async (req, res, next: any) => {
 // @access  Private
 router.post(
   '/:workId/chapters',
-  [
-    auth,
-    [
-      check('chapterNumber', 'Chapter number is required').not().isEmpty().isNumeric(),
-      check('title', 'Title is required').not().isEmpty(),
-      check('content', 'Content is required').not().isEmpty(),
-    ],
-  ],
-  async (req: AuthRequest, res: any, next: any) => {
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      throw new HttpError(400, 'Validation failed', errors.array());
-    }
-
-    const { chapterNumber, title, content } = req.body;
-    const { workId } = req.params;
-
+  auth,
+  chapterCreateValidation,
+  validateRequest,
+  async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-      const work = await Work.findById(workId);
-    if (!work) {
-      throw new HttpError(404, 'Work not found');
-    }
+      const currentUser = req.user;
+      if (!currentUser) {
+        throw new HttpError(401, 'Authentication required');
+      }
 
-      // Check if the user owns the work or is an admin
-      if (work.author.toString() !== req.user!.id && req.user!.role !== 'admin') {
+      const { chapterNumber, title, content } = req.body;
+      const { workId } = req.params;
+      const work = await Work.findById(workId);
+
+      if (!work) {
+        throw new HttpError(404, 'Work not found');
+      }
+
+      if (work.author.toString() !== currentUser.id && currentUser.role !== 'admin') {
         throw new HttpError(401, 'User not authorized');
       }
 
@@ -170,8 +175,7 @@ router.post(
 
       const chapter = await newChapter.save();
       res.json(chapter);
-    } catch (err: any) {
-      console.error(err.message);
+    } catch (err) {
       next(err);
     }
   }
@@ -180,58 +184,52 @@ router.post(
 // @route   PUT /works/:id
 // @desc    Update a work
 // @access  Private
-router.put('/:id', auth, async (req: AuthRequest, res: any, next: NextFunction) => {
-  const { title, description, coverImageUrl, genres, tags, status, language, isPublished, contentWarnings } = req.body;
-
-  // Build work object
-  const workFields: any = {};
-  if (req.body.hasOwnProperty('title')) workFields.title = title;
-  if (req.body.hasOwnProperty('description')) workFields.description = description;
-  if (req.body.hasOwnProperty('coverImageUrl')) workFields.coverImageUrl = coverImageUrl;
-  if (req.body.hasOwnProperty('genres')) workFields.genres = genres;
-  if (req.body.hasOwnProperty('tags')) workFields.tags = tags;
-  if (req.body.hasOwnProperty('status')) workFields.status = status;
-  if (req.body.hasOwnProperty('language')) workFields.language = language;
-  if (req.body.hasOwnProperty('isPublished')) workFields.isPublished = isPublished;
-  if (req.body.hasOwnProperty('contentWarnings')) workFields.contentWarnings = contentWarnings;
-
+router.put('/:id', auth, workUpdateValidation, validateRequest, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    let work = await Work.findById(req.params.id);
-
-    if (!work) throw new HttpError(404, 'Work not found');
-
-    // Make sure user owns work or is an admin
-    if (work.author.toString() !== req.user!.id && req.user!.role !== 'admin') {
-      throw new HttpError(401, 'Not authorized');
+    const currentUser = req.user;
+    if (!currentUser) {
+      throw new HttpError(401, 'Authentication required');
     }
 
-    work = await Work.findByIdAndUpdate(
-      req.params.id,
-      { $set: workFields },
-      { new: true }
-    );
+    const workFields: Partial<IWork> = {};
+    for (const key of updatableWorkFields) {
+      if (Object.prototype.hasOwnProperty.call(req.body, key)) {
+        (workFields as Record<string, unknown>)[key] = req.body[key];
+      }
+    }
 
-    res.json(work);
-  } catch (err: any) {
-    console.error('Error updating work:', err.message);
-    next(err);
-  }
-});
-
-
-// @route   DELETE /works/:id
-// @desc    Delete a work
-// @access  Private
-router.delete('/:id', auth, async (req: AuthRequest, res: any, next: any) => {
-  try {
-    const work = await Work.findById(req.params.id);
-
+    let work = await Work.findById(req.params.id);
     if (!work) {
       throw new HttpError(404, 'Work not found');
     }
 
-    // Check user or admin
-    if (work.author.toString() !== req.user!.id && req.user!.role !== 'admin') {
+    if (work.author.toString() !== currentUser.id && currentUser.role !== 'admin') {
+      throw new HttpError(401, 'Not authorized');
+    }
+
+    work = await Work.findByIdAndUpdate(req.params.id, { $set: workFields }, { new: true });
+    res.json(work);
+  } catch (err) {
+    next(err);
+  }
+});
+
+// @route   DELETE /works/:id
+// @desc    Delete a work
+// @access  Private
+router.delete('/:id', auth, idParamValidation('id'), validateRequest, async (req: AuthRequest, res: Response, next: NextFunction) => {
+  try {
+    const currentUser = req.user;
+    if (!currentUser) {
+      throw new HttpError(401, 'Authentication required');
+    }
+
+    const work = await Work.findById(req.params.id);
+    if (!work) {
+      throw new HttpError(404, 'Work not found');
+    }
+
+    if (work.author.toString() !== currentUser.id && currentUser.role !== 'admin') {
       throw new HttpError(401, 'User not authorized');
     }
 
@@ -239,13 +237,8 @@ router.delete('/:id', auth, async (req: AuthRequest, res: any, next: any) => {
     await work.deleteOne();
 
     res.json({ msg: 'Work removed' });
-  } catch (err: any) {
-    console.error(err.message);
-    if (err.kind === 'ObjectId') {
-      next(new HttpError(404, 'Work not found'));
-    } else {
-      next(err);
-    }
+  } catch (err) {
+    next(err);
   }
 });
 

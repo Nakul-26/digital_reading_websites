@@ -1,18 +1,21 @@
-import express, { NextFunction } from 'express';
+import express, { NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import User from '../models/User';
 import dotenv from 'dotenv';
 import auth from '../middleware/auth';
 import { HttpError } from '../utils/HttpError';
+import { validateRequest } from '../middleware/validateRequest';
+import { loginValidation, registerValidation } from '../middleware/validators';
 
 dotenv.config();
 
 const router = express.Router();
 
 // Register
-router.post('/register', async (req, res, next: NextFunction) => {
-  const { username, password } = req.body;
+router.post('/register', registerValidation, validateRequest, async (req: Request, res: Response, next: NextFunction) => {
+  const username = req.body.username.trim();
+  const password = req.body.password as string;
 
   try {
     let user = await User.findOne({ username });
@@ -49,8 +52,9 @@ router.post('/register', async (req, res, next: NextFunction) => {
 });
 
 // Login
-router.post('/login', async (req, res, next: NextFunction) => {
-  const { username, password } = req.body;
+router.post('/login', loginValidation, validateRequest, async (req: Request, res: Response, next: NextFunction) => {
+  const username = req.body.username.trim();
+  const password = req.body.password as string;
 
   try {
     let user = await User.findOne({ username });

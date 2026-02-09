@@ -10,6 +10,7 @@ import {
   FormHelperText,
 } from '@mui/material';
 import { api } from '../api';
+import { INPUT_LIMITS } from '../constants/inputLimits';
 
 const UploadChapter: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -167,6 +168,11 @@ const UploadChapter: React.FC = () => {
           required
           margin="normal"
           disabled={loadingSubmit}
+          inputProps={{
+            min: INPUT_LIMITS.chapterNumberMin,
+            max: INPUT_LIMITS.chapterNumberMax,
+            step: 1,
+          }}
         />
         <TextField
           label="Title"
@@ -177,6 +183,7 @@ const UploadChapter: React.FC = () => {
           required
           margin="normal"
           disabled={loadingSubmit}
+          inputProps={{ maxLength: INPUT_LIMITS.chapterTitle }}
         />
         {workType === 'novel' ? (
           <TextField
@@ -189,6 +196,7 @@ const UploadChapter: React.FC = () => {
             rows={10}
             margin="normal"
             disabled={loadingSubmit}
+            inputProps={{ maxLength: INPUT_LIMITS.chapterContent }}
           />
         ) : (
           <Box sx={{ mt: 2 }}>

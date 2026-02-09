@@ -17,6 +17,7 @@ import {
 } from '@mui/material';
 import { AuthContext } from '../AuthContext';
 import { api } from '../api';
+import { INPUT_LIMITS } from '../constants/inputLimits';
 
 const EditWork: React.FC = () => {
   const { id } = useParams<{ id: string }>();
@@ -158,6 +159,7 @@ const EditWork: React.FC = () => {
           required
           margin="normal"
           disabled={loadingSubmit}
+          inputProps={{ maxLength: INPUT_LIMITS.workTitle }}
         />
         <TextField
           label="Description"
@@ -169,6 +171,7 @@ const EditWork: React.FC = () => {
           rows={4}
           margin="normal"
           disabled={loadingSubmit}
+          inputProps={{ maxLength: INPUT_LIMITS.workDescription }}
         />
         <TextField
           label="Genres (comma-separated)"
@@ -178,6 +181,7 @@ const EditWork: React.FC = () => {
           fullWidth
           margin="normal"
           disabled={loadingSubmit}
+          inputProps={{ maxLength: INPUT_LIMITS.workListField }}
         />
         <TextField
           label="Tags (comma-separated)"
@@ -187,6 +191,7 @@ const EditWork: React.FC = () => {
           fullWidth
           margin="normal"
           disabled={loadingSubmit}
+          inputProps={{ maxLength: INPUT_LIMITS.workListField }}
         />
         <FormControl fullWidth margin="normal" disabled={loadingSubmit}>
           <InputLabel id="status-label">Status</InputLabel>
@@ -210,6 +215,7 @@ const EditWork: React.FC = () => {
           fullWidth
           margin="normal"
           disabled={loadingSubmit}
+          inputProps={{ maxLength: INPUT_LIMITS.workLanguage }}
         />
         <TextField
           label="Content Warnings (comma-separated)"
@@ -219,6 +225,7 @@ const EditWork: React.FC = () => {
           fullWidth
           margin="normal"
           disabled={loadingSubmit}
+          inputProps={{ maxLength: INPUT_LIMITS.workListField }}
         />
                     <FormControlLabel
                       control={

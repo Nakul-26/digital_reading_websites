@@ -3,6 +3,7 @@ import { useParams } from 'react-router-dom';
 import { Container, Typography, Paper, Box, Stack, Button, TextField, Divider } from '@mui/material';
 import { api } from '../api';
 import { AuthContext } from '../AuthContext';
+import { INPUT_LIMITS } from '../constants/inputLimits';
 
 interface IChapter {
   _id: string;
@@ -177,6 +178,7 @@ const ChapterReader: React.FC = () => {
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             disabled={!auth?.isAuthenticated}
+            inputProps={{ maxLength: INPUT_LIMITS.chapterComment }}
           />
           <Button variant="contained" onClick={handleAddComment} disabled={!auth?.isAuthenticated}>
             Post

@@ -15,6 +15,7 @@ import {
   FormControlLabel,
 } from '@mui/material';
 import { api } from '../api';
+import { INPUT_LIMITS } from '../constants/inputLimits';
 
 const UploadWork: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -149,6 +150,7 @@ const UploadWork: React.FC = () => {
           required
           margin="normal"
           disabled={loading}
+          inputProps={{ maxLength: INPUT_LIMITS.workTitle }}
         />
         <FormControl fullWidth margin="normal" disabled={loading}>
           <InputLabel id="type-label">Type</InputLabel>
@@ -174,6 +176,7 @@ const UploadWork: React.FC = () => {
           rows={4}
           margin="normal"
           disabled={loading}
+          inputProps={{ maxLength: INPUT_LIMITS.workDescription }}
         />
         <TextField
           label="Genres (comma-separated)"
@@ -183,6 +186,7 @@ const UploadWork: React.FC = () => {
           fullWidth
           margin="normal"
           disabled={loading}
+          inputProps={{ maxLength: INPUT_LIMITS.workListField }}
         />
         <TextField
           label="Tags (comma-separated)"
@@ -192,6 +196,7 @@ const UploadWork: React.FC = () => {
           fullWidth
           margin="normal"
           disabled={loading}
+          inputProps={{ maxLength: INPUT_LIMITS.workListField }}
         />
         <FormControl fullWidth margin="normal" disabled={loading}>
           <InputLabel id="status-label">Status</InputLabel>
@@ -215,6 +220,7 @@ const UploadWork: React.FC = () => {
           fullWidth
           margin="normal"
           disabled={loading}
+          inputProps={{ maxLength: INPUT_LIMITS.workLanguage }}
         />
         <TextField
           label="Content Warnings (comma-separated)"
@@ -224,6 +230,7 @@ const UploadWork: React.FC = () => {
           fullWidth
           margin="normal"
           disabled={loading}
+          inputProps={{ maxLength: INPUT_LIMITS.workListField }}
         />
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
           <Box>

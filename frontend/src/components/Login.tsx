@@ -11,6 +11,7 @@ import {
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { AuthContext } from '../AuthContext';
 import { api } from '../api';
+import { INPUT_LIMITS } from '../constants/inputLimits';
 
 const Login: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -82,6 +83,7 @@ const Login: React.FC = () => {
             value={username}
             onChange={onChange}
             disabled={loading} // Disable during loading
+            inputProps={{ maxLength: INPUT_LIMITS.username }}
           />
           <TextField
             margin="normal"
@@ -95,6 +97,7 @@ const Login: React.FC = () => {
             value={password}
             onChange={onChange}
             disabled={loading} // Disable during loading
+            inputProps={{ maxLength: INPUT_LIMITS.password }}
           />
           <Button
             type="submit"

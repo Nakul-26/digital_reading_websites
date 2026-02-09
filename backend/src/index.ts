@@ -6,6 +6,7 @@ import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import path from 'path';
 import multer from 'multer';
+import { randomUUID } from 'crypto';
 
 import authRoutes from './routes/auth';
 import worksRoutes from './routes/works';
@@ -14,6 +15,7 @@ import adminRoutes from './routes/admin';
 import feedbackRoutes from './routes/feedback';
 import { HttpError } from './utils/HttpError';
 import { apiLimiter, authLimiter, uploadLimiter } from './middleware/rateLimiters';
+import { noSqlInjectionSanitizer, securityHeaders } from './middleware/security';
 
 dotenv.config();
 const app = express();
@@ -60,8 +62,11 @@ const corsOptions = {
   credentials: true
 };
 app.use(cors(corsOptions));
-app.use(express.json());
+app.use(securityHeaders);
+app.use(express.json({ limit: '100kb' }));
+app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use(cookieParser());
+app.use(noSqlInjectionSanitizer);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 const dbName = process.env.MONGO_DB_NAME;
@@ -101,30 +106,86 @@ const storage = multer.diskStorage({
       cb(null, 'uploads/');
     },
     filename: (req, file, cb) => {
-      cb(null, Date.now() + path.extname(file.originalname));
+      cb(null, `${Date.now()}-${randomUUID()}${path.extname(file.originalname).toLowerCase()}`);
     },
   });
 
-const upload = multer({ storage });
+const allowedMimeTypes = new Set([
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+]);
 
-app.post('/api/upload', uploadLimiter, upload.single('file'), (req: Request, res: Response) => {
-    if (!req.file) {
-        return res.status(400).send('No file uploaded.');
+const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
+  if (!allowedMimeTypes.has(file.mimetype)) {
+    return cb(new HttpError(400, 'Unsupported file type. Only jpeg, png, webp, and gif are allowed.'));
+  }
+
+  cb(null, true);
+};
+
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024, // 5 MB per file
+    files: 10,
+  },
+  fileFilter,
+});
+
+const handleUploadMiddlewareError = (err: unknown, next: NextFunction) => {
+  if (!err) {
+    return;
+  }
+
+  if (err instanceof multer.MulterError) {
+    if (err.code === 'LIMIT_FILE_SIZE') {
+      return next(new HttpError(400, 'File too large. Maximum size is 5 MB.'));
     }
-    res.status(200).send({
+    if (err.code === 'LIMIT_FILE_COUNT') {
+      return next(new HttpError(400, 'Too many files. Maximum is 10 files per request.'));
+    }
+    return next(new HttpError(400, `Upload error: ${err.message}`));
+  }
+
+  return next(err as Error);
+};
+
+app.post('/api/upload', uploadLimiter, (req: Request, res: Response, next: NextFunction) => {
+    upload.single('file')(req, res, (err) => {
+      handleUploadMiddlewareError(err, next);
+      if (err) {
+        return;
+      }
+
+      if (!req.file) {
+        return next(new HttpError(400, 'No file uploaded.'));
+      }
+
+      return res.status(200).send({
         message: 'File uploaded successfully',
         filename: req.file.filename,
+      });
     });
 });
 
-app.post('/api/upload-multiple', uploadLimiter, upload.array('files'), (req: Request, res: Response) => {
-    if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
-        return res.status(400).send('No files uploaded.');
-    }
-    const filenames = (req.files as Express.Multer.File[]).map(file => file.filename);
-    res.status(200).send({
+app.post('/api/upload-multiple', uploadLimiter, (req: Request, res: Response, next: NextFunction) => {
+    upload.array('files', 10)(req, res, (err) => {
+      handleUploadMiddlewareError(err, next);
+      if (err) {
+        return;
+      }
+
+      if (!req.files || (req.files as Express.Multer.File[]).length === 0) {
+        return next(new HttpError(400, 'No files uploaded.'));
+      }
+
+      const filenames = (req.files as Express.Multer.File[]).map(file => file.filename);
+      return res.status(200).send({
         message: 'Files uploaded successfully',
         filenames: filenames,
+      });
     });
 });
 

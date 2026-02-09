@@ -27,6 +27,7 @@ UserSchema.pre('save', async function () {
 });
 
 export interface IUser extends Document {
+  id: string;
   username: string;
   password?: string;
   role: 'user' | 'admin';
