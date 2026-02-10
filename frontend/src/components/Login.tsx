@@ -35,8 +35,7 @@ const Login: React.FC = () => {
     setLoading(true); // Set loading to true
     setError(null); // Clear previous errors
     try {
-      const res = await api.post('/api/auth/login', formData);
-      localStorage.setItem('token', res.data.token);
+      await api.post('/api/auth/login', formData);
       if (authContext) {
         await authContext.checkAuth();
       }

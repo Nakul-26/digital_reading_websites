@@ -11,10 +11,10 @@ api.interceptors.response.use(
     // If there's a response and it's a 401 Unauthorized error
     if (error.response && error.response.status === 401) {
       console.warn('401 Unauthorized: Redirecting to login...');
-      // Clear any stored token (assuming it's in localStorage)
-      localStorage.removeItem('token');
       // Redirect to the login page
-      window.location.href = '/login';
+      if (window.location.pathname !== '/login') {
+        window.location.href = '/login';
+      }
     }
 
     let errorMessage = 'An unexpected error occurred.';

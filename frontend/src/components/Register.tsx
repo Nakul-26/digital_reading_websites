@@ -32,11 +32,14 @@ const Register: React.FC = () => {
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if (password.length < INPUT_LIMITS.passwordMin) {
+      setError(`Password must be at least ${INPUT_LIMITS.passwordMin} characters long.`);
+      return;
+    }
     setLoading(true); // Set loading to true
     setError(null); // Clear previous errors
     try {
-      const res = await api.post('/api/auth/register', formData);
-      localStorage.setItem('token', res.data.token);
+      await api.post('/api/auth/register', formData);
       await authContext?.checkAuth();
       navigate('/upload-work');
     } catch (err: unknown) {
@@ -94,7 +97,10 @@ const Register: React.FC = () => {
             value={password}
             onChange={onChange}
             disabled={loading} // Disable during loading
-            inputProps={{ maxLength: INPUT_LIMITS.password }}
+            inputProps={{
+              minLength: INPUT_LIMITS.passwordMin,
+              maxLength: INPUT_LIMITS.password,
+            }}
           />
           <Button
             type="submit"

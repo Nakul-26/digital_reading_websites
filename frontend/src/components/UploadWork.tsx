@@ -105,8 +105,7 @@ const UploadWork: React.FC = () => {
     };
 
     try {
-      // The token is already set in api.defaults.headers.common['x-auth-token'] by AuthContext
-      // No need to manually add it to config here unless it's a specific override
+      // Auth cookie is sent automatically because axios is configured with withCredentials.
       await api.post('/api/works', workData);
       setSuccessMessage('Work created successfully!');
       setFormData({ // Optionally reset form data on success

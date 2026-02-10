@@ -16,7 +16,7 @@ import {
   ListItemText,
   Divider,
 } from '@mui/material';
-import { Link as RouterLink, useNavigate } from 'react-router-dom';
+import { Link as RouterLink } from 'react-router-dom';
 import Brightness4Icon from '@mui/icons-material/Brightness4';
 import Brightness7Icon from '@mui/icons-material/Brightness7';
 import MenuIcon from '@mui/icons-material/Menu';
@@ -28,7 +28,6 @@ const Navbar = () => {
   const theme = useTheme();
   const colorMode = useContext(ColorModeContext);
   const authContext = useContext(AuthContext);
-  const navigate = useNavigate();
 
   const isMobile = useMediaQuery(theme.breakpoints.down('md'));
   const [drawerOpen, setDrawerOpen] = useState(false);
@@ -37,12 +36,10 @@ const Navbar = () => {
     return null; // or a loading spinner
   }
 
-  const { isAuthenticated, user, checkAuth } = authContext;
+  const { isAuthenticated, user, logout } = authContext;
 
-  const handleLogout = () => {
-    localStorage.removeItem('token');
-    checkAuth();
-    navigate('/');
+  const handleLogout = async () => {
+    await logout();
     setDrawerOpen(false); // Close drawer on logout
   };
 

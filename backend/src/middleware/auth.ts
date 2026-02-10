@@ -11,8 +11,8 @@ interface AuthRequest extends Request {
 }
 
 export default async function (req: AuthRequest, res: Response, next: NextFunction) {
-  // Get token from header
-  const token = req.header('x-auth-token');
+  // Prefer HttpOnly auth cookie; keep header fallback for backward compatibility.
+  const token = req.cookies?.auth_token || req.header('x-auth-token');
 
   // Check if not token
   if (!token) {

@@ -1,5 +1,6 @@
 export const INPUT_LIMITS = {
   username: 30,
+  passwordMin: 8,
   password: 128,
   feedbackName: 80,
   feedbackEmail: 254,

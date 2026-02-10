@@ -3,20 +3,23 @@ import { HttpError } from '../utils/HttpError';
 
 const forbiddenKeys = new Set(['__proto__', 'constructor', 'prototype']);
 
-const sanitizeValue = (value: unknown): unknown => {
+const sanitizeInPlace = (value: unknown): unknown => {
   if (Array.isArray(value)) {
-    return value.map((item) => sanitizeValue(item));
+    for (let i = 0; i < value.length; i += 1) {
+      value[i] = sanitizeInPlace(value[i]);
+    }
+    return value;
   }
 
   if (value && typeof value === 'object') {
-    const sanitized: Record<string, unknown> = {};
-    for (const [key, nestedValue] of Object.entries(value as Record<string, unknown>)) {
+    const target = value as Record<string, unknown>;
+    for (const [key, nestedValue] of Object.entries(target)) {
       if (forbiddenKeys.has(key) || key.startsWith('$') || key.includes('.')) {
         throw new HttpError(400, `Invalid field: ${key}`);
       }
-      sanitized[key] = sanitizeValue(nestedValue);
+      target[key] = sanitizeInPlace(nestedValue);
     }
-    return sanitized;
+    return value;
   }
 
   if (typeof value === 'string') {
@@ -28,9 +31,9 @@ const sanitizeValue = (value: unknown): unknown => {
 
 export const noSqlInjectionSanitizer = (req: Request, _res: Response, next: NextFunction) => {
   try {
-    req.body = sanitizeValue(req.body);
-    req.query = sanitizeValue(req.query) as Request['query'];
-    req.params = sanitizeValue(req.params) as Request['params'];
+    req.body = sanitizeInPlace(req.body);
+    sanitizeInPlace(req.query);
+    sanitizeInPlace(req.params);
     next();
   } catch (err) {
     next(err);

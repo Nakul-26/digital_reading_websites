@@ -13,8 +13,8 @@ interface AuthContextType {
   setIsAuthenticated: (isAuthenticated: boolean) => void;
   user: IUser | null;
   loading: boolean;
-  checkAuth: () => void;
-  logout: () => void; // Added logout function
+  checkAuth: () => Promise<void>;
+  logout: () => Promise<void>;
 }
 
 export const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -26,31 +26,26 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const navigate = useNavigate(); // Initialize useNavigate
 
   const checkAuth = async () => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      api.defaults.headers.common['x-auth-token'] = token;
-      try {
-        const res = await api.get('/api/auth/me');
-        setUser(res.data);
-        setIsAuthenticated(true);
-      } catch (err) {
-        localStorage.removeItem('token');
-        delete api.defaults.headers.common['x-auth-token'];
-        setUser(null);
-        setIsAuthenticated(false);
-        navigate('/login'); // Redirect on failed auth check
-      }
-    } else {
-      delete api.defaults.headers.common['x-auth-token'];
+    try {
+      const res = await api.get('/api/auth/me');
+      setUser(res.data);
+      setIsAuthenticated(true);
+    } catch (err) {
       setUser(null);
       setIsAuthenticated(false);
+      if (window.location.pathname !== '/login') {
+        navigate('/login');
+      }
     }
     setLoading(false);
   };
 
-  const logout = () => {
-    localStorage.removeItem('token');
-    delete api.defaults.headers.common['x-auth-token'];
+  const logout = async () => {
+    try {
+      await api.post('/api/auth/logout');
+    } catch {
+      // Ignore logout API failures and clear local auth state regardless.
+    }
     setUser(null);
     setIsAuthenticated(false);
     navigate('/login');

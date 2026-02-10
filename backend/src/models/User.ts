@@ -10,6 +10,8 @@ const UserSchema = new Schema({
   password: {
     type: String,
     required: true,
+    minlength: 8,
+    maxlength: 128,
   },
   role: {
     type: String,
@@ -22,7 +24,9 @@ UserSchema.pre('save', async function () {
   if (!this.isModified('password')) {
     return;
   }
-  const salt = await bcrypt.genSalt(10);
+  const bcryptRounds = Number.parseInt(process.env.BCRYPT_ROUNDS || '12', 10);
+  const saltRounds = Number.isInteger(bcryptRounds) && bcryptRounds >= 10 ? bcryptRounds : 12;
+  const salt = await bcrypt.genSalt(saltRounds);
   this.password = await bcrypt.hash(this.password, salt);
 });
 
