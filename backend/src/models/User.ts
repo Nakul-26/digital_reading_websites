@@ -18,6 +18,15 @@ const UserSchema = new Schema({
     enum: ['user', 'admin'],
     default: 'user',
   },
+  failedLoginAttempts: {
+    type: Number,
+    default: 0,
+    min: 0,
+  },
+  lockUntil: {
+    type: Date,
+    default: null,
+  },
 });
 
 UserSchema.pre('save', async function () {
@@ -35,6 +44,8 @@ export interface IUser extends Document {
   username: string;
   password?: string;
   role: 'user' | 'admin';
+  failedLoginAttempts: number;
+  lockUntil?: Date | null;
 }
 
 export default mongoose.model<IUser>('User', UserSchema);

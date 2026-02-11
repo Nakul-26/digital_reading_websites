@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useContext } from 'react';
 import { useParams } from 'react-router-dom';
-import { Container, Typography, Paper, Box, Stack, Button, TextField, Divider } from '@mui/material';
+import { Container, Typography, Paper, Box, Stack, Button, TextField, Divider, Alert } from '@mui/material';
 import { api } from '../api';
 import { AuthContext } from '../AuthContext';
 import { INPUT_LIMITS } from '../constants/inputLimits';
@@ -136,7 +136,26 @@ const ChapterReader: React.FC = () => {
           <Typography variant="body2" color="text.secondary">
             Likes: {likesCount}
           </Typography>
-          <Button variant={liked ? 'contained' : 'outlined'} onClick={handleToggleLike}>
+          <Button
+            variant={liked ? 'contained' : 'outlined'}
+            onClick={handleToggleLike}
+            sx={
+              liked
+                ? {
+                    bgcolor: 'primary.main',
+                    color: 'primary.contrastText',
+                    '&:hover': { bgcolor: 'primary.dark' },
+                  }
+                : {
+                    color: 'text.primary',
+                    borderColor: 'text.primary',
+                    '&:hover': {
+                      borderColor: 'text.primary',
+                      bgcolor: 'action.hover',
+                    },
+                  }
+            }
+          >
             {liked ? 'Liked' : 'Like'}
           </Button>
         </Stack>
@@ -171,16 +190,44 @@ const ChapterReader: React.FC = () => {
         <Typography variant="h6" gutterBottom>
           Comments ({chapter.comments?.length || 0})
         </Typography>
+        {!auth?.isAuthenticated && (
+          <Alert severity="error" sx={{ mb: 2 }}>
+            You must log in to like chapters and post comments.
+          </Alert>
+        )}
         <Stack direction="row" spacing={2} sx={{ mb: 2 }}>
           <TextField
             fullWidth
-            label={auth?.isAuthenticated ? 'Add a comment' : 'Log in to comment'}
+            label="Add a comment"
             value={commentText}
             onChange={(e) => setCommentText(e.target.value)}
             disabled={!auth?.isAuthenticated}
+            error={!auth?.isAuthenticated}
+            placeholder={!auth?.isAuthenticated ? 'Log in required' : 'Write your comment...'}
             inputProps={{ maxLength: INPUT_LIMITS.chapterComment }}
+            helperText=" "
           />
-          <Button variant="contained" onClick={handleAddComment} disabled={!auth?.isAuthenticated}>
+          <Button
+            variant="contained"
+            onClick={handleAddComment}
+            disabled={!auth?.isAuthenticated}
+            sx={{
+              minWidth: 110,
+              height: 56,
+              px: 2.5,
+              borderRadius: 2,
+              fontWeight: 700,
+              textTransform: 'none',
+              boxShadow: (theme) => theme.shadows[2],
+              '&:hover': {
+                boxShadow: (theme) => theme.shadows[4],
+              },
+              '&.Mui-disabled': {
+                bgcolor: 'action.disabledBackground',
+                color: 'text.disabled',
+              },
+            }}
+          >
             Post
           </Button>
         </Stack>

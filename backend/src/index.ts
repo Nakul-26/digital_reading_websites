@@ -7,6 +7,7 @@ import mongoose from 'mongoose';
 import path from 'path';
 import multer from 'multer';
 import { randomUUID } from 'crypto';
+import csrf from 'csurf';
 
 import authRoutes from './routes/auth';
 import worksRoutes from './routes/works';
@@ -67,6 +68,16 @@ app.use(express.json({ limit: '100kb' }));
 app.use(express.urlencoded({ extended: true, limit: '100kb' }));
 app.use(cookieParser());
 app.use(noSqlInjectionSanitizer);
+
+const csrfProtection = csrf({
+  cookie: {
+    key: '_csrf',
+    httpOnly: true,
+    secure: process.env.NODE_ENV === 'production',
+    sameSite: 'lax',
+  },
+});
+app.use(csrfProtection);
 app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
 
 const dbName = process.env.MONGO_DB_NAME;
@@ -215,6 +226,9 @@ app.use((err: Error, req: Request, res: Response, next: NextFunction) => {
     statusCode = err.statusCode;
     message = err.message;
     data = err.data;
+  } else if ((err as { code?: string }).code === 'EBADCSRFTOKEN') {
+    statusCode = 403;
+    message = 'Invalid CSRF token';
   } else {
     // Log unexpected errors for debugging
     console.error('Unhandled server error:', err);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useContext } from 'react';
+﻿import React, { useState, useEffect, useContext } from 'react';
 import { useParams, Link as RouterLink } from 'react-router-dom';
 import {
   Container,
@@ -47,6 +47,7 @@ interface IChapter {
   _id: string;
   chapterNumber: number;
   title: string;
+  views: number;
 }
 
 const WorkPage: React.FC = () => {
@@ -226,7 +227,7 @@ const WorkPage: React.FC = () => {
                     >
                       <ListItemText
                         primary={chapter.title}
-                        secondary={`Chapter ${chapter.chapterNumber}`}
+                        secondary={`Chapter ${chapter.chapterNumber} | ${chapter.views || 0} views`}
                       />
                     </ListItemButton>
                   </ListItem>
@@ -264,3 +265,5 @@ const WorkPage: React.FC = () => {
 };
 
 export default WorkPage;
+
+

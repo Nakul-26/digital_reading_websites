@@ -1,6 +1,5 @@
-import React, { createContext, useState, useEffect, ReactNode, useContext } from 'react';
+import React, { createContext, useState, useEffect, ReactNode } from 'react';
 import { api } from './api';
-import { useNavigate } from 'react-router-dom';
 
 interface IUser {
   _id: string;
@@ -23,7 +22,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
   const [user, setUser] = useState<IUser | null>(null);
   const [loading, setLoading] = useState<boolean>(true);
-  const navigate = useNavigate(); // Initialize useNavigate
 
   const checkAuth = async () => {
     try {
@@ -33,9 +31,6 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     } catch (err) {
       setUser(null);
       setIsAuthenticated(false);
-      if (window.location.pathname !== '/login') {
-        navigate('/login');
-      }
     }
     setLoading(false);
   };
@@ -48,7 +43,7 @@ export const AuthProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
     }
     setUser(null);
     setIsAuthenticated(false);
-    navigate('/login');
+    window.location.href = '/login';
   };
 
   useEffect(() => {

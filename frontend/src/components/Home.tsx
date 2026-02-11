@@ -23,19 +23,23 @@ interface IWork {
     username: string;
   };
   status: string;
+  views?: number;
 }
 
 const Home: React.FC = () => {
   const [works, setWorks] = useState<IWork[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchWorks = async () => {
       try {
         const res = await api.get('/api/works');
         setWorks(res.data);
+        setError(null);
       } catch (err) {
         console.error(err);
+        setError('Failed to load works. Please refresh and try again.');
       } finally {
         setLoading(false);
       }
@@ -48,6 +52,9 @@ const Home: React.FC = () => {
   }
 
   if (works.length === 0) {
+    if (error) {
+      return <Typography color="error">{error}</Typography>;
+    }
     return <Typography>No works published yet.</Typography>;
   }
 
@@ -130,8 +137,9 @@ const Home: React.FC = () => {
                     >
                       {featuredWork.description}
                     </Typography>
-                    <Box sx={{ mt: 2 }}>
+                    <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                       <Chip label={featuredWork.status} size="small" />
+                      <Chip label={`${featuredWork.views || 0} views`} size="small" variant="outlined" />
                     </Box>
                   </CardContent>
                 </Grid>
@@ -196,8 +204,9 @@ const Home: React.FC = () => {
                   >
                     {work.description}
                   </Typography>
-                  <Box sx={{ mt: 2 }}>
+                  <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
                     <Chip label={work.status} size="small" />
+                    <Chip label={`${work.views || 0} views`} size="small" variant="outlined" />
                   </Box>
                 </CardContent>
               </CardActionArea>

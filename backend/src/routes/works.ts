@@ -81,7 +81,25 @@ router.post('/', auth, workCreateValidation, validateRequest, async (req: AuthRe
 router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const works = await Work.find({ isPublished: true }).populate('author', ['_id', 'username']);
-    res.json(works);
+    const workIds = works.map((work) => work._id);
+    const viewStats = await Chapter.aggregate<{ _id: unknown; totalViews: number }>([
+      { $match: { work: { $in: workIds } } },
+      { $group: { _id: '$work', totalViews: { $sum: '$views' } } },
+    ]);
+
+    const viewsByWorkId = new Map(
+      viewStats.map((stat) => [String(stat._id), stat.totalViews || 0])
+    );
+
+    const worksWithViews = works.map((work) => {
+      const workObject = work.toObject();
+      return {
+        ...workObject,
+        views: viewsByWorkId.get(String(work._id)) || 0,
+      };
+    });
+
+    res.json(worksWithViews);
   } catch (err) {
     next(err);
   }

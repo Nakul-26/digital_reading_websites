@@ -16,7 +16,15 @@ const JWT_COOKIE_NAME = 'auth_token';
 const isProduction = process.env.NODE_ENV === 'production';
 const jwtSecret = process.env.JWT_SECRET;
 const jwtExpiresIn = process.env.JWT_EXPIRES_IN || '1h';
-const cookieMaxAgeMs = Number.parseInt(process.env.JWT_COOKIE_MAX_AGE_MS || '3600000', 10);
+const cookieMaxAgeMs = Number.parseInt(process.env.JWT_COOKIE_MAX_AGE_MS || '604800000', 10);
+const configuredMaxFailedAttempts = Number.parseInt(process.env.LOGIN_MAX_FAILED_ATTEMPTS || '15', 10);
+const configuredLockoutMinutes = Number.parseInt(process.env.LOGIN_LOCKOUT_MINUTES || '15', 10);
+const maxFailedLoginAttempts = Number.isInteger(configuredMaxFailedAttempts) && configuredMaxFailedAttempts > 0
+  ? configuredMaxFailedAttempts
+  : 15;
+const loginLockoutMinutes = Number.isInteger(configuredLockoutMinutes) && configuredLockoutMinutes > 0
+  ? configuredLockoutMinutes
+  : 15;
 
 if (!jwtSecret) {
   throw new Error('JWT_SECRET is not set');
@@ -25,9 +33,9 @@ if (!jwtSecret) {
 const authCookieOptions = {
   httpOnly: true,
   secure: isProduction,
-  sameSite: (isProduction ? 'none' : 'lax') as 'none' | 'lax',
+  sameSite: 'lax' as const,
   path: '/',
-  maxAge: Number.isFinite(cookieMaxAgeMs) && cookieMaxAgeMs > 0 ? cookieMaxAgeMs : 3600000,
+  maxAge: Number.isFinite(cookieMaxAgeMs) && cookieMaxAgeMs > 0 ? cookieMaxAgeMs : 7 * 24 * 60 * 60 * 1000,
 };
 
 const signAuthToken = (userId: string): Promise<string> => {
@@ -47,6 +55,11 @@ const signAuthToken = (userId: string): Promise<string> => {
     );
   });
 };
+
+router.get('/csrf-token', (req: Request, res: Response) => {
+  const csrfToken = (req as Request & { csrfToken: () => string }).csrfToken();
+  res.json({ csrfToken });
+});
 
 // Register
 router.post('/register', registerValidation, validateRequest, async (req: Request, res: Response, next: NextFunction) => {
@@ -85,10 +98,33 @@ router.post('/login', loginValidation, validateRequest, async (req: Request, res
       throw new HttpError(400, 'Invalid credentials');
     }
 
+    const lockUntilTime = user.lockUntil ? user.lockUntil.getTime() : null;
+    if (lockUntilTime && lockUntilTime > Date.now()) {
+      throw new HttpError(423, 'Account is temporarily locked. Please try again later.');
+    }
+
+    if (lockUntilTime && lockUntilTime <= Date.now()) {
+      user.failedLoginAttempts = 0;
+      user.lockUntil = null;
+      await user.save();
+    }
+
     const isMatch = await bcrypt.compare(password, user.password as string);
     if (!isMatch) {
+      user.failedLoginAttempts = (user.failedLoginAttempts || 0) + 1;
+      if (user.failedLoginAttempts >= maxFailedLoginAttempts) {
+        user.lockUntil = new Date(Date.now() + loginLockoutMinutes * 60 * 1000);
+      }
+      await user.save();
       throw new HttpError(400, 'Invalid credentials');
     }
+
+    if (user.failedLoginAttempts > 0 || user.lockUntil) {
+      user.failedLoginAttempts = 0;
+      user.lockUntil = null;
+      await user.save();
+    }
+
     const token = await signAuthToken(user.id);
     res.cookie(JWT_COOKIE_NAME, token, authCookieOptions);
     res.json({ message: 'Logged in successfully' });
@@ -107,13 +143,19 @@ router.get('/me', auth, async (req: any, res, next: NextFunction) => {
     const user = await User.findById(req.user.id).select('-password');
     res.json(user);
   } catch (err: any) {
-    console.error(err.message);
+    if (!(err instanceof HttpError && err.statusCode === 401)) {
+      console.error(err.message);
+    }
     next(err);
   }
 });
 
 router.post('/logout', (_req: Request, res: Response) => {
-  res.clearCookie(JWT_COOKIE_NAME, { path: '/' });
+  res.clearCookie(JWT_COOKIE_NAME, {
+    path: '/',
+    sameSite: 'lax',
+    secure: isProduction,
+  });
   res.json({ message: 'Logged out successfully' });
 });
 
