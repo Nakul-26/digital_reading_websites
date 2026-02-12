@@ -42,7 +42,7 @@ const MyWorks: React.FC = () => {
   const [works, setWorks] = useState<IWork[]>([]);
   const [loadingWorks, setLoadingWorks] = useState(true); // New loading state for fetching works
   const [errorWorks, setErrorWorks] = useState<string | null>(null); // New error state for fetching works
-  const [loadingDelete, setLoadingDelete] = useState(false); // New loading state for delete operation
+  const [, setLoadingDelete] = useState(false); // Track delete pending state without rendering it
   const [errorDelete, setErrorDelete] = useState<string | null>(null); // New error state for delete operation
   const [open, setOpen] = useState(false);
   const [selectedWork, setSelectedWork] = useState<IWork | null>(null);
@@ -129,7 +129,7 @@ const MyWorks: React.FC = () => {
         {works.map((work) => {
           const isAuthor = authContext?.user?._id === work.author._id;
           return (
-            <Grid key={work._id} item xs={12} sm={6} md={4} lg={3}>
+            <Grid key={work._id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
               <Card
                 sx={{
                   minWidth: 275,

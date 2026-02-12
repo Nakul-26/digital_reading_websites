@@ -108,7 +108,7 @@ const Login: React.FC = () => {
             {loading ? 'Signing In...' : 'Sign In'}
           </Button>
           <Grid container>
-            <Grid item>
+            <Grid size={12}>
               <RouterLink to="/register" style={{ textDecoration: 'none' }}>
                 <Typography variant="body2" color="secondary">
                   {"Don't have an account? Sign Up / Register"}

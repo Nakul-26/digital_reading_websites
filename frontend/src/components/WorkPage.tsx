@@ -131,7 +131,7 @@ const WorkPage: React.FC = () => {
     <Container sx={{ py: 4 }}>
       <Paper sx={{ p: { xs: 2, sm: 3, md: 4 }, mt: 4 }}>
         <Grid container spacing={{ xs: 2, md: 4 }}>
-          <Grid item xs={12} md={4}>
+          <Grid size={{ xs: 12, md: 4 }}>
             <Box
               component="img"
               sx={{
@@ -145,7 +145,7 @@ const WorkPage: React.FC = () => {
               alt={work.title}
             />
           </Grid>
-          <Grid item xs={12} md={8}>
+          <Grid size={{ xs: 12, md: 8 }}>
             <Typography variant="h3" component="h1" gutterBottom>
               {work.title}
             </Typography>

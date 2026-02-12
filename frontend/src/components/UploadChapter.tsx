@@ -7,7 +7,6 @@ import {
   Typography,
   TextField,
   Button,
-  FormHelperText,
 } from '@mui/material';
 import { api } from '../api';
 import { INPUT_LIMITS } from '../constants/inputLimits';

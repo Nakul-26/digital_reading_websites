@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import axios from 'axios'; // Import axios for isAxiosError check
 import {
   Container,
@@ -7,14 +7,12 @@ import {
   Typography,
   TextField,
   Button,
-  FormHelperText, // Added FormHelperText for messages
 } from '@mui/material';
 import { api } from '../api';
 import { INPUT_LIMITS } from '../constants/inputLimits';
 
 const EditChapter: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
     content: '',
@@ -55,7 +53,7 @@ const EditChapter: React.FC = () => {
     fetchChapter();
   }, [id]);
 
-  const { title, content, workId } = formData;
+  const { title, content } = formData;
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });

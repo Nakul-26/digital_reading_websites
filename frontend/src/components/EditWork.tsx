@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useContext } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams } from 'react-router-dom';
 import axios from 'axios'; // Import axios for isAxiosError check
 import {
   Container,
@@ -19,7 +19,6 @@ import { INPUT_LIMITS } from '../constants/inputLimits';
 
 const EditWork: React.FC = () => {
   const { id } = useParams<{ id: string }>();
-  const navigate = useNavigate();
   const [formData, setFormData] = useState({
     title: '',
     description: '',

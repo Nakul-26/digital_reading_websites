@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useContext } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Route, Routes } from 'react-router-dom';
 import {
   CssBaseline,
@@ -18,7 +18,6 @@ import EditWork from './components/EditWork';
 import EditChapter from './components/EditChapter';
 import MyWorks from './components/MyWorks';
 import { ColorModeContext } from './ColorModeContext';
-import { AuthContext } from './AuthContext';
 import { getTheme } from './theme';
 import { ThemeProvider, createTheme } from '@mui/material/styles';
 import ProtectedRoute from './components/ProtectedRoute';
@@ -41,8 +40,6 @@ const App: React.FC = () => {
   );
 
   const theme = useMemo(() => createTheme(getTheme(mode)), [mode]);
-  const authContext = useContext(AuthContext);
-
   return (
     <ColorModeContext.Provider value={colorMode}>
       <ThemeProvider theme={theme}>

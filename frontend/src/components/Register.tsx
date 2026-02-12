@@ -112,7 +112,7 @@ const Register: React.FC = () => {
             {loading ? 'Signing Up...' : 'Sign Up'}
           </Button>
           <Grid container justifyContent="flex-end">
-            <Grid item>
+            <Grid size={12}>
               <RouterLink to="/login" style={{ textDecoration: 'none' }}>
                 <Typography variant="body2" color="secondary">
                   Already have an account? Sign in / Login

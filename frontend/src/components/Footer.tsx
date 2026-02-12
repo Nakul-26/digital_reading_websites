@@ -1,5 +1,5 @@
 import React from 'react';
-import { AppBar, Toolbar, Typography, Box, useTheme } from '@mui/material';
+import { AppBar, Toolbar, Typography, useTheme } from '@mui/material';
 
 const Footer: React.FC = () => {
   const theme = useTheme();

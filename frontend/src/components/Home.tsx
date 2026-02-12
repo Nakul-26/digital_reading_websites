@@ -97,7 +97,7 @@ const Home: React.FC = () => {
               sx={{ borderRadius: '16px' }}
             >
               <Grid container>
-                <Grid item xs={12} md={4}>
+                <Grid size={{ xs: 12, md: 4 }}>
                   <CardMedia
                     component="img"
                     sx={{
@@ -116,7 +116,7 @@ const Home: React.FC = () => {
                     alt={featuredWork.title}
                   />
                 </Grid>
-                <Grid item xs={12} md={8}>
+                <Grid size={{ xs: 12, md: 8 }}>
                   <CardContent sx={{ p: { xs: 2, md: 3 } }}>
                     <Typography gutterBottom variant="h4" component="div">
                       {featuredWork.title}
@@ -155,7 +155,7 @@ const Home: React.FC = () => {
       </Typography>
       <Grid container spacing={3}>
         {works.slice(1).map((work) => (
-          <Grid key={work._id} item xs={12} sm={6} md={4} lg={3}>
+          <Grid key={work._id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
             <Card
               sx={{
                 minWidth: 275,
