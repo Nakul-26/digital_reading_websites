@@ -34,6 +34,7 @@ interface IWork {
     username: string;
   };
   status: string;
+  moderationStatus?: 'pending' | 'published' | 'rejected';
   isPublished: boolean;
 }
 
@@ -93,6 +94,7 @@ const MyWorks: React.FC = () => {
   };
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  const getModerationStatus = (work: IWork) => work.moderationStatus || (work.isPublished ? 'published' : 'pending');
 
   if (loadingWorks) {
     return <Typography>Loading your works...</Typography>;
@@ -188,7 +190,11 @@ const MyWorks: React.FC = () => {
                     </Typography>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mt: 2 }}>
                       <Chip label={work.status} size="small" />
-                      <Chip label={work.isPublished ? 'Published' : 'Unpublished'} size="small" color={work.isPublished ? 'success' : 'default'} />
+                      <Chip
+                        label={getModerationStatus(work)}
+                        size="small"
+                        color={getModerationStatus(work) === 'published' ? 'success' : getModerationStatus(work) === 'rejected' ? 'error' : 'warning'}
+                      />
                     </Box>
                   </CardContent>
                 </CardActionArea>

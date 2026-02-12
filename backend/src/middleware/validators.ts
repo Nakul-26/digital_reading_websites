@@ -9,9 +9,10 @@ const WORK_FIELDS = [
   'tags',
   'status',
   'language',
-  'isPublished',
   'contentWarnings',
 ] as const;
+
+const ADMIN_USER_FIELDS = ['username', 'password', 'role'] as const;
 
 const isValidContent = (value: unknown) => {
   if (typeof value === 'string') {
@@ -153,7 +154,6 @@ export const workCreateValidation = [
     .isLength({ min: 1, max: 40 })
     .withMessage('Language must be between 1 and 40 characters')
     .custom(rejectHtmlTags('Language')),
-  body('isPublished').isBoolean().withMessage('isPublished must be a boolean'),
   body('contentWarnings')
     .optional()
     .isArray({ max: 20 })
@@ -243,10 +243,6 @@ export const workUpdateValidation = [
     .isLength({ min: 1, max: 40 })
     .withMessage('Language must be between 1 and 40 characters')
     .custom(rejectHtmlTags('Language')),
-  body('isPublished')
-    .optional()
-    .isBoolean()
-    .withMessage('isPublished must be a boolean'),
   body('contentWarnings')
     .optional()
     .isArray({ max: 20 })
@@ -282,6 +278,70 @@ export const chapterCreateValidation = [
     }
     return true;
   }),
+  checkExact([], { message: 'Unexpected fields are not allowed' }),
+];
+
+export const workModerationValidation = [
+  idParamValidation('id'),
+  body('moderationStatus')
+    .isIn(['published', 'rejected'])
+    .withMessage('moderationStatus must be published or rejected'),
+  checkExact([], { message: 'Unexpected fields are not allowed' }),
+];
+
+export const adminUserCreateValidation = [
+  body('username')
+    .isString()
+    .withMessage('Username must be a string')
+    .trim()
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Username must be between 3 and 30 characters')
+    .matches(/^[a-zA-Z0-9_]+$/)
+    .withMessage('Username can only contain letters, numbers, and underscore')
+    .custom(rejectHtmlTags('Username')),
+  body('password')
+    .isString()
+    .withMessage('Password must be a string')
+    .isLength({ min: 8, max: 128 })
+    .withMessage('Password must be between 8 and 128 characters'),
+  body('role')
+    .optional()
+    .isIn(['user', 'admin'])
+    .withMessage('Role must be user or admin'),
+  checkExact([], { message: 'Unexpected fields are not allowed' }),
+];
+
+export const adminUserUpdateValidation = [
+  idParamValidation('id'),
+  body().custom((_, { req }) => {
+    const hasAllowedField = ADMIN_USER_FIELDS.some((field) =>
+      Object.prototype.hasOwnProperty.call(req.body, field)
+    );
+    if (!hasAllowedField) {
+      throw new Error('At least one updatable field is required');
+    }
+    return true;
+  }),
+  body('username')
+    .optional()
+    .isString()
+    .withMessage('Username must be a string')
+    .trim()
+    .isLength({ min: 3, max: 30 })
+    .withMessage('Username must be between 3 and 30 characters')
+    .matches(/^[a-zA-Z0-9_]+$/)
+    .withMessage('Username can only contain letters, numbers, and underscore')
+    .custom(rejectHtmlTags('Username')),
+  body('password')
+    .optional()
+    .isString()
+    .withMessage('Password must be a string')
+    .isLength({ min: 8, max: 128 })
+    .withMessage('Password must be between 8 and 128 characters'),
+  body('role')
+    .optional()
+    .isIn(['user', 'admin'])
+    .withMessage('Role must be user or admin'),
   checkExact([], { message: 'Unexpected fields are not allowed' }),
 ];
 

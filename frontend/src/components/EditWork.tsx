@@ -11,8 +11,6 @@ import {
   MenuItem,
   FormControl,
   InputLabel,
-  Switch,
-  FormControlLabel,
   FormHelperText, // Added FormHelperText for messages
 } from '@mui/material';
 import { AuthContext } from '../AuthContext';
@@ -29,7 +27,6 @@ const EditWork: React.FC = () => {
     tags: '',
     status: 'ongoing',
     language: '',
-    isPublished: false,
     contentWarnings: '',
   });
   const [loadingFetch, setLoadingFetch] = useState(true); // New loading state for fetching work data
@@ -64,7 +61,6 @@ const EditWork: React.FC = () => {
           tags: res.data.tags.join(', '),
           status: res.data.status,
           language: res.data.language,
-          isPublished: res.data.isPublished,
           contentWarnings: res.data.contentWarnings.join(', '),
         });
       } catch (err: unknown) {
@@ -80,7 +76,7 @@ const EditWork: React.FC = () => {
     fetchWork();
   }, [id, authContext?.user]); // Added authContext.user as dependency to re-check authorization if user changes
 
-  const { title, description, genres, tags, status, language, isPublished, contentWarnings } = formData;
+  const { title, description, genres, tags, status, language, contentWarnings } = formData;
 
   const onChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -91,11 +87,6 @@ const EditWork: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     resetMessages();
   }
-
-  const onSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.checked });
-    resetMessages();
-  };
 
   const onSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -227,29 +218,9 @@ const EditWork: React.FC = () => {
           disabled={loadingSubmit}
           inputProps={{ maxLength: INPUT_LIMITS.workListField }}
         />
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={isPublished}
-                          onChange={onSwitchChange}
-                          name="isPublished"
-                          color="primary"
-                          sx={{
-                            '& .MuiSwitch-switchBase.Mui-checked': {
-                              color: (theme) => theme.palette.grey[500],
-                              '&:hover': {
-                                backgroundColor: (theme) => `${theme.palette.grey[500]}14`,
-                              },
-                            },
-                            '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                              backgroundColor: (theme) => theme.palette.grey[500],
-                            },
-                          }}
-                        />
-                      }
-                      label="Published"
-                      disabled={loadingSubmit}
-                    />        <FormHelperText>If published, the work will be visible to all users.</FormHelperText>
+        <FormHelperText>
+          Saving changes will resubmit this work for admin review before it becomes public.
+        </FormHelperText>
         <Button
           type="submit"
           variant="contained"

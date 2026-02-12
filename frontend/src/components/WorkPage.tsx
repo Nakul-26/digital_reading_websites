@@ -19,6 +19,7 @@ import {
   DialogContentText,
   DialogTitle,
   Chip,
+  Stack,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -39,6 +40,7 @@ interface IWork {
   tags: string[];
   status: string;
   language: string;
+  moderationStatus?: 'pending' | 'published' | 'rejected';
   isPublished: boolean;
   contentWarnings: string[];
 }
@@ -123,6 +125,7 @@ const WorkPage: React.FC = () => {
     authContext.user._id === work.author._id;
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
+  const moderationStatus = work.moderationStatus || (work.isPublished ? 'published' : 'pending');
 
   return (
     <Container sx={{ py: 4 }}>
@@ -162,7 +165,7 @@ const WorkPage: React.FC = () => {
             </Box>
             <Typography variant="body2">Status: {work.status}</Typography>
             <Typography variant="body2">Language: {work.language}</Typography>
-            <Typography variant="body2">Published: {work.isPublished ? 'Yes' : 'No'}</Typography>
+            <Typography variant="body2">Moderation: {moderationStatus}</Typography>
             {work.contentWarnings.length > 0 && (
               <Box sx={{ mt: 2 }}>
                 <Typography variant="subtitle2">Content Warnings:</Typography>
@@ -265,5 +268,3 @@ const WorkPage: React.FC = () => {
 };
 
 export default WorkPage;
-
-

@@ -17,15 +17,28 @@ interface AuthRequest extends Request {
   user?: IUser;
 }
 
+const assertWorkVisibility = (chapterWork: unknown, currentUser?: IUser) => {
+  const work = chapterWork as unknown as { author: { toString(): string }; isPublished: boolean };
+  if (work.isPublished) {
+    return;
+  }
+
+  if (!currentUser || (work.author.toString() !== currentUser.id && currentUser.role !== 'admin')) {
+    throw new HttpError(404, 'Chapter not found');
+  }
+};
+
 // @route   GET /chapters/:id
 // @desc    Get chapter by ID
 // @access  Public
-router.get('/:id', idParamValidation('id'), validateRequest, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:id', auth, idParamValidation('id'), validateRequest, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const chapter = await Chapter.findById(req.params.id).populate('work', 'type');
+    const chapter = await Chapter.findById(req.params.id).populate('work', 'type author isPublished');
     if (!chapter) {
       throw new HttpError(404, 'Chapter not found');
     }
+
+    assertWorkVisibility(chapter.work, req.user);
 
     res.json(chapter);
   } catch (err) {
@@ -36,18 +49,18 @@ router.get('/:id', idParamValidation('id'), validateRequest, async (req: Request
 // @route   POST /chapters/:id/view
 // @desc    Increment chapter views
 // @access  Public
-router.post('/:id/view', idParamValidation('id'), validateRequest, async (req: Request, res: Response, next: NextFunction) => {
+router.post('/:id/view', auth, idParamValidation('id'), validateRequest, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
-    const chapter = await Chapter.findByIdAndUpdate(
-      req.params.id,
-      { $inc: { views: 1 } },
-      { new: true }
-    ).select('views');
+    const chapter = await Chapter.findById(req.params.id).populate('work', 'author isPublished');
 
     if (!chapter) {
       throw new HttpError(404, 'Chapter not found');
     }
 
+    assertWorkVisibility(chapter.work, req.user);
+
+    chapter.views += 1;
+    await chapter.save();
     res.json({ views: chapter.views });
   } catch (err) {
     next(err);
@@ -64,16 +77,19 @@ router.post('/:id/like', auth, idParamValidation('id'), validateRequest, async (
       throw new HttpError(401, 'Authentication required');
     }
 
-    const chapter = await Chapter.findByIdAndUpdate(
-      req.params.id,
-      { $addToSet: { likes: currentUser._id } },
-      { new: true }
-    ).select('likes');
+    const chapter = await Chapter.findById(req.params.id).populate('work', 'author isPublished');
 
     if (!chapter) {
       throw new HttpError(404, 'Chapter not found');
     }
 
+    assertWorkVisibility(chapter.work, currentUser);
+
+    const alreadyLiked = chapter.likes.some((likeUserId) => likeUserId.toString() === currentUser._id?.toString());
+    if (!alreadyLiked) {
+      chapter.likes.push(currentUser._id as any);
+    }
+    await chapter.save();
     res.json({ likesCount: chapter.likes.length });
   } catch (err) {
     next(err);
@@ -90,16 +106,16 @@ router.delete('/:id/like', auth, idParamValidation('id'), validateRequest, async
       throw new HttpError(401, 'Authentication required');
     }
 
-    const chapter = await Chapter.findByIdAndUpdate(
-      req.params.id,
-      { $pull: { likes: currentUser._id } },
-      { new: true }
-    ).select('likes');
+    const chapter = await Chapter.findById(req.params.id).populate('work', 'author isPublished');
 
     if (!chapter) {
       throw new HttpError(404, 'Chapter not found');
     }
 
+    assertWorkVisibility(chapter.work, currentUser);
+
+    chapter.likes = chapter.likes.filter((likeUserId) => likeUserId.toString() !== currentUser._id?.toString());
+    await chapter.save();
     res.json({ likesCount: chapter.likes.length });
   } catch (err) {
     next(err);
@@ -116,10 +132,12 @@ router.post('/:id/comments', auth, commentCreateValidation, validateRequest, asy
       throw new HttpError(401, 'Authentication required');
     }
 
-    const chapter = await Chapter.findById(req.params.id);
+    const chapter = await Chapter.findById(req.params.id).populate('work', 'author isPublished');
     if (!chapter) {
       throw new HttpError(404, 'Chapter not found');
     }
+
+    assertWorkVisibility(chapter.work, currentUser);
 
     chapter.comments.unshift({
       user: currentUser._id as any,

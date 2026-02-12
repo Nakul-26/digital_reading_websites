@@ -14,6 +14,7 @@ import {
   IconButton,
   CircularProgress, // Import CircularProgress for loading indicator
   Box, // Import Box for layout
+  Chip,
 } from '@mui/material';
 import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
@@ -32,6 +33,8 @@ interface IWork {
     _id: string;
     username:string;
   };
+  moderationStatus?: 'pending' | 'published' | 'rejected';
+  isPublished?: boolean;
 }
 
 interface IFeedback {
@@ -54,6 +57,8 @@ const AdminDashboard: React.FC = () => {
   const [errorFeedback, setErrorFeedback] = useState<string | null>(null); // New error state for feedback
   const [loadingDelete, setLoadingDelete] = useState(false); // New loading state for delete operation
   const [errorDelete, setErrorDelete] = useState<string | null>(null); // New error state for delete operation
+  const [loadingModerationId, setLoadingModerationId] = useState<string | null>(null);
+  const [errorModeration, setErrorModeration] = useState<string | null>(null);
 
 
   useEffect(() => {
@@ -117,6 +122,27 @@ const AdminDashboard: React.FC = () => {
     }
   };
 
+  const resolveModerationStatus = (work: IWork) => {
+    if (work.moderationStatus) {
+      return work.moderationStatus;
+    }
+    return work.isPublished ? 'published' : 'pending';
+  };
+
+  const handleModerationUpdate = async (id: string, moderationStatus: 'published' | 'rejected') => {
+    setLoadingModerationId(id);
+    setErrorModeration(null);
+    try {
+      const res = await api.put(`/api/admin/works/${id}/moderation`, { moderationStatus });
+      setWorks((prevWorks) => prevWorks.map((work) => (work._id === id ? res.data : work)));
+    } catch (err: any) {
+      console.error(err);
+      setErrorModeration(err.response?.data?.message || 'Failed to update moderation status.');
+    } finally {
+      setLoadingModerationId(null);
+    }
+  };
+
   return (
     <Container>
       <Typography variant="h4" component="h1" gutterBottom>
@@ -125,6 +151,11 @@ const AdminDashboard: React.FC = () => {
       {errorDelete && (
         <Typography color="error" variant="body2" sx={{ mb: 2 }}>
           {errorDelete}
+        </Typography>
+      )}
+      {errorModeration && (
+        <Typography color="error" variant="body2" sx={{ mb: 2 }}>
+          {errorModeration}
         </Typography>
       )}
 
@@ -180,6 +211,7 @@ const AdminDashboard: React.FC = () => {
               <TableRow>
                 <TableCell>Title</TableCell>
                 <TableCell>Author</TableCell>
+                <TableCell>Moderation</TableCell>
                 <TableCell>Actions</TableCell>
               </TableRow>
             </TableHead>
@@ -189,9 +221,36 @@ const AdminDashboard: React.FC = () => {
                   <TableCell>{work.title}</TableCell>
                   <TableCell>{work.author.username}</TableCell>
                   <TableCell>
+                    <Chip
+                      label={resolveModerationStatus(work)}
+                      size="small"
+                      color={resolveModerationStatus(work) === 'published' ? 'success' : resolveModerationStatus(work) === 'rejected' ? 'error' : 'warning'}
+                    />
+                  </TableCell>
+                  <TableCell>
                     <IconButton component={RouterLink} to={`/edit-work/${work._id}`}>
                       <EditIcon />
                     </IconButton>
+                    <Button
+                      variant="contained"
+                      color="success"
+                      size="small"
+                      onClick={() => handleModerationUpdate(work._id, 'published')}
+                      disabled={loadingModerationId === work._id}
+                      sx={{ mr: 1 }}
+                    >
+                      Approve
+                    </Button>
+                    <Button
+                      variant="outlined"
+                      color="error"
+                      size="small"
+                      onClick={() => handleModerationUpdate(work._id, 'rejected')}
+                      disabled={loadingModerationId === work._id}
+                      sx={{ mr: 1 }}
+                    >
+                      Reject
+                    </Button>
                     <IconButton onClick={() => handleDeleteWork(work._id)} disabled={loadingDelete}>
                       <DeleteIcon />
                     </IconButton>

@@ -75,11 +75,18 @@ const Navbar = () => {
               </ListItemButton>
             </ListItem>
             {user?.role === 'admin' && (
-              <ListItem disablePadding>
-                <ListItemButton component={RouterLink} to="/admin">
-                  <ListItemText primary="Admin" />
-                </ListItemButton>
-              </ListItem>
+              <>
+                <ListItem disablePadding>
+                  <ListItemButton component={RouterLink} to="/admin">
+                    <ListItemText primary="Admin" />
+                  </ListItemButton>
+                </ListItem>
+                <ListItem disablePadding>
+                  <ListItemButton component={RouterLink} to="/admin/users">
+                    <ListItemText primary="Manage Users" />
+                  </ListItemButton>
+                </ListItem>
+              </>
             )}
             <Divider />
             <ListItem disablePadding>
@@ -126,20 +133,25 @@ const Navbar = () => {
               {isAuthenticated ? (
                 <>
                   <Typography>Hi, {user?.username}</Typography>
-                  <Button component={RouterLink} to="/feedback" color="inherit">
-                    Feedback
-                  </Button>
+                  {user?.role === 'admin' && (
+                    <>
+                      <Button component={RouterLink} to="/admin" color="inherit">
+                        Dashboard
+                      </Button>
+                      <Button component={RouterLink} to="/admin/users" color="inherit">
+                        Users
+                      </Button>
+                    </>
+                  )}
                   <Button component={RouterLink} to="/my-works" color="inherit">
                     My Works
                   </Button>
                   <Button component={RouterLink} to="/upload-work" color="inherit">
                     Upload Work
                   </Button>
-                  {user?.role === 'admin' && (
-                    <Button component={RouterLink} to="/admin" color="inherit">
-                      Admin
-                    </Button>
-                  )}
+                  <Button component={RouterLink} to="/feedback" color="inherit">
+                    Feedback
+                  </Button>
                   <Button variant="contained" disableElevation onClick={handleLogout}>
                     Logout
                   </Button>

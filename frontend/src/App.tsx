@@ -26,6 +26,7 @@ import GuestRoute from './components/GuestRoute';
 import AdminDashboard from './components/AdminDashboard';
 import AdminRoute from './components/AdminRoute';
 import Feedback from './components/Feedback';
+import AdminUsers from './components/AdminUsers';
 import './App.css';
 
 const App: React.FC = () => {
@@ -61,6 +62,7 @@ const App: React.FC = () => {
                 <Route path="/edit-work/:id" element={<EditWork />} />
                 <Route path="/edit-chapter/:id" element={<EditChapter />} />
                 <Route path="/admin" element={<AdminRoute><AdminDashboard /></AdminRoute>} />
+                <Route path="/admin/users" element={<AdminRoute><AdminUsers /></AdminRoute>} />
               </Route>
               <Route element={<GuestRoute />}>
                 <Route path="/login" element={<Login />} />

@@ -10,6 +10,7 @@ export interface IWork extends Document {
   tags?: string[];
   status: 'ongoing' | 'completed' | 'hiatus'; // reader-facing
   language?: string;
+  moderationStatus: 'pending' | 'published' | 'rejected';
   isPublished: boolean; // visibility control
   contentWarnings?: string[];
   createdAt: Date;
@@ -42,6 +43,11 @@ const WorkSchema = new Schema(
       default: 'ongoing',
     },
     language: String,
+    moderationStatus: {
+      type: String,
+      enum: ['pending', 'published', 'rejected'],
+      default: 'pending',
+    },
     isPublished: {
       type: Boolean,
       default: false,
@@ -54,5 +60,6 @@ const WorkSchema = new Schema(
 WorkSchema.index({ title: 1 });
 WorkSchema.index({ author: 1 });
 WorkSchema.index({ isPublished: 1 });
+WorkSchema.index({ moderationStatus: 1 });
 
 export default mongoose.model<IWork>('Work', WorkSchema);

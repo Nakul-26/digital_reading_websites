@@ -11,8 +11,6 @@ import {
   FormControl,
   InputLabel,
   FormHelperText,
-  Switch,
-  FormControlLabel,
 } from '@mui/material';
 import { api } from '../api';
 import { INPUT_LIMITS } from '../constants/inputLimits';
@@ -26,7 +24,6 @@ const UploadWork: React.FC = () => {
     tags: '',
     status: 'ongoing',
     language: '',
-    isPublished: false,
     contentWarnings: '',
   });
   const [coverImage, setCoverImage] = useState<File | null>(null);
@@ -34,7 +31,7 @@ const UploadWork: React.FC = () => {
   const [successMessage, setSuccessMessage] = useState<string | null>(null); // New success message state
   const [errorMessage, setErrorMessage] = useState<string | null>(null); // New error message state
 
-  const { title, type, description, genres, tags, status, language, isPublished, contentWarnings } = formData;
+  const { title, type, description, genres, tags, status, language, contentWarnings } = formData;
 
   const resetMessages = () => {
     setSuccessMessage(null);
@@ -50,11 +47,6 @@ const UploadWork: React.FC = () => {
     setFormData({ ...formData, [e.target.name]: e.target.value });
     resetMessages(); // Clear messages on input change
   }
-
-  const onSwitchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    setFormData({ ...formData, [e.target.name]: e.target.checked });
-    resetMessages(); // Clear messages on input change
-  };
 
   const onFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files) {
@@ -100,7 +92,6 @@ const UploadWork: React.FC = () => {
       tags: tags.split(',').map(t => t.trim()),
       status,
       language,
-      isPublished,
       contentWarnings: contentWarnings.split(',').map(cw => cw.trim()),
     };
 
@@ -110,7 +101,7 @@ const UploadWork: React.FC = () => {
       setSuccessMessage('Work created successfully!');
       setFormData({ // Optionally reset form data on success
         title: '', type: 'novel', description: '', genres: '', tags: '',
-        status: 'ongoing', language: '', isPublished: false, contentWarnings: '',
+        status: 'ongoing', language: '', contentWarnings: '',
       });
       setCoverImage(null);
     } catch (err: unknown) {
@@ -232,32 +223,9 @@ const UploadWork: React.FC = () => {
           inputProps={{ maxLength: INPUT_LIMITS.workListField }}
         />
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', mt: 2 }}>
-          <Box>
-            <FormControlLabel
-              control={
-                <Switch
-                  checked={isPublished}
-                  onChange={onSwitchChange}
-                  name="isPublished"
-                  color="primary"
-                  sx={{
-                    '& .MuiSwitch-switchBase.Mui-checked': {
-                      color: (theme) => theme.palette.grey[500],
-                      '&:hover': {
-                        backgroundColor: (theme) => `${theme.palette.grey[500]}14`,
-                      },
-                    },
-                    '& .MuiSwitch-switchBase.Mui-checked + .MuiSwitch-track': {
-                      backgroundColor: (theme) => theme.palette.grey[500],
-                    },
-                  }}
-                />
-              }
-              label="Published"
-              disabled={loading}
-            />
-            <FormHelperText>If published, the work will be visible to all users.</FormHelperText>
-          </Box>
+          <FormHelperText>
+            New works are submitted for admin review and become public after approval.
+          </FormHelperText>
           <Button variant="contained" component="label" disabled={loading}>
             Upload Cover Image
             <input type="file" hidden onChange={onFileChange} disabled={loading} />

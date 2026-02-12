@@ -23,7 +23,6 @@ const updatableWorkFields = [
   'tags',
   'status',
   'language',
-  'isPublished',
   'contentWarnings',
 ] as const;
 
@@ -50,7 +49,6 @@ router.post('/', auth, workCreateValidation, validateRequest, async (req: AuthRe
       tags,
       status,
       language,
-      isPublished,
       contentWarnings,
     } = req.body;
 
@@ -64,7 +62,8 @@ router.post('/', auth, workCreateValidation, validateRequest, async (req: AuthRe
       tags,
       status,
       language,
-      isPublished,
+      moderationStatus: 'pending',
+      isPublished: false,
       contentWarnings,
     });
 
@@ -80,7 +79,10 @@ router.post('/', auth, workCreateValidation, validateRequest, async (req: AuthRe
 // @access  Public
 router.get('/', async (_req: Request, res: Response, next: NextFunction) => {
   try {
-    const works = await Work.find({ isPublished: true }).populate('author', ['_id', 'username']);
+    const works = await Work.find({
+      isPublished: true,
+      $or: [{ moderationStatus: 'published' }, { moderationStatus: { $exists: false } }],
+    }).populate('author', ['_id', 'username']);
     const workIds = works.map((work) => work._id);
     const viewStats = await Chapter.aggregate<{ _id: unknown; totalViews: number }>([
       { $match: { work: { $in: workIds } } },
@@ -148,8 +150,20 @@ router.get('/:id', auth, idParamValidation('id'), validateRequest, async (req: A
 // @route   GET /works/:workId/chapters
 // @desc    Get all chapters for a work
 // @access  Public
-router.get('/:workId/chapters', idParamValidation('workId'), validateRequest, async (req: Request, res: Response, next: NextFunction) => {
+router.get('/:workId/chapters', auth, idParamValidation('workId'), validateRequest, async (req: AuthRequest, res: Response, next: NextFunction) => {
   try {
+    const work = await Work.findById(req.params.workId).select('author isPublished');
+    if (!work) {
+      throw new HttpError(404, 'Work not found');
+    }
+
+    if (!work.isPublished) {
+      const currentUser = req.user;
+      if (!currentUser || (work.author.toString() !== currentUser.id && currentUser.role !== 'admin')) {
+        throw new HttpError(404, 'Work not found');
+      }
+    }
+
     const chapters = await Chapter.find({ work: req.params.workId }).sort({ chapterNumber: 1 });
     res.json(chapters);
   } catch (err) {
@@ -223,6 +237,11 @@ router.put('/:id', auth, workUpdateValidation, validateRequest, async (req: Auth
 
     if (work.author.toString() !== currentUser.id && currentUser.role !== 'admin') {
       throw new HttpError(401, 'Not authorized');
+    }
+
+    if (currentUser.role !== 'admin' && Object.keys(workFields).length > 0) {
+      (workFields as Record<string, unknown>).moderationStatus = 'pending';
+      (workFields as Record<string, unknown>).isPublished = false;
     }
 
     work = await Work.findByIdAndUpdate(req.params.id, { $set: workFields }, { new: true });
