@@ -1,4 +1,4 @@
-import express, { NextFunction, Request, Response } from 'express';
+import express, { CookieOptions, NextFunction, Request, Response } from 'express';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
 import type { SignOptions } from 'jsonwebtoken';
@@ -30,10 +30,10 @@ if (!jwtSecret) {
   throw new Error('JWT_SECRET is not set');
 }
 
-const authCookieOptions = {
+const authCookieOptions: CookieOptions = {
   httpOnly: true,
   secure: isProduction,
-  sameSite: 'lax' as const,
+  sameSite: isProduction ? 'none' : 'lax',
   path: '/',
   maxAge: Number.isFinite(cookieMaxAgeMs) && cookieMaxAgeMs > 0 ? cookieMaxAgeMs : 7 * 24 * 60 * 60 * 1000,
 };
@@ -153,7 +153,7 @@ router.get('/me', auth, async (req: any, res, next: NextFunction) => {
 router.post('/logout', (_req: Request, res: Response) => {
   res.clearCookie(JWT_COOKIE_NAME, {
     path: '/',
-    sameSite: 'lax',
+    sameSite: isProduction ? 'none' : 'lax',
     secure: isProduction,
   });
   res.json({ message: 'Logged out successfully' });

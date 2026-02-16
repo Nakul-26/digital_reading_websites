@@ -20,6 +20,8 @@ import { noSqlInjectionSanitizer, securityHeaders } from './middleware/security'
 
 dotenv.config();
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
+app.set('trust proxy', 1);
 
 // --- Rate Limiter ---
 // Apply limiters to specific routes.
@@ -57,10 +59,28 @@ async function connectDB() {
 connectDB();
 
 // --- Middleware ---
-const corsOptions = {
-  origin: process.env.CORS_ORIGIN ? process.env.CORS_ORIGIN.split(',') : ["http://localhost:5173"],
+const allowedOrigins = (process.env.CORS_ORIGIN ?? 'http://localhost:5173')
+  .split(',')
+  .map((origin) => origin.trim())
+  .filter(Boolean);
+
+const corsOptions: cors.CorsOptions = {
+  origin: (origin, callback) => {
+    // Allow non-browser requests (e.g. server-to-server, health checks).
+    if (!origin) {
+      callback(null, true);
+      return;
+    }
+
+    if (allowedOrigins.includes(origin)) {
+      callback(null, true);
+      return;
+    }
+
+    callback(new HttpError(403, `Origin not allowed by CORS: ${origin}`));
+  },
   optionsSuccessStatus: 200,
-  credentials: true
+  credentials: true,
 };
 app.use(cors(corsOptions));
 app.use(securityHeaders);
@@ -73,8 +93,8 @@ const csrfProtection = csrf({
   cookie: {
     key: '_csrf',
     httpOnly: true,
-    secure: process.env.NODE_ENV === 'production',
-    sameSite: 'lax',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'lax',
   },
 });
 app.use(csrfProtection);
