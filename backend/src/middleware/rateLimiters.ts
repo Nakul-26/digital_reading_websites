@@ -7,10 +7,19 @@ const isLocalRequest = (ip?: string) =>
 
 const skipLimiterInLocalDev = (ip?: string) => !isProduction && isLocalRequest(ip);
 
+const parsePositiveInt = (value: string | undefined, fallback: number) => {
+  const parsed = Number.parseInt(value || '', 10);
+  return Number.isInteger(parsed) && parsed > 0 ? parsed : fallback;
+};
+
+const apiMaxRequests = parsePositiveInt(process.env.API_RATE_LIMIT_MAX, 1000);
+const authMaxRequests = parsePositiveInt(process.env.AUTH_RATE_LIMIT_MAX, 10);
+const uploadMaxRequests = parsePositiveInt(process.env.UPLOAD_RATE_LIMIT_MAX, 10);
+
 // Rate limiter for login and register routes
 export const authLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 10, // Limit each IP to 10 requests per windowMs
+  max: authMaxRequests, // Limit each IP to AUTH_RATE_LIMIT_MAX requests per windowMs
   standardHeaders: true, // Return rate limit info in the `RateLimit-*` headers
   legacyHeaders: false, // Disable the `X-RateLimit-*` headers
   message: 'Too many accounts created from this IP, please try again after 15 minutes',
@@ -20,7 +29,7 @@ export const authLimiter = rateLimit({
 // Rate limiter for general API routes
 export const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // Limit each IP to 100 requests per windowMs
+  max: apiMaxRequests, // Limit each IP to API_RATE_LIMIT_MAX requests per windowMs
   standardHeaders: true,
   legacyHeaders: false,
   message: 'Too many requests from this IP, please try again after 15 minutes',
@@ -30,7 +39,7 @@ export const apiLimiter = rateLimit({
 // Rate limiter for upload routes
 export const uploadLimiter = rateLimit({
     windowMs: 60 * 60 * 1000, // 1 hour
-    max: 20, // Limit each IP to 20 uploads per hour
+    max: uploadMaxRequests, // Limit each IP to UPLOAD_RATE_LIMIT_MAX uploads per hour
     standardHeaders: true,
     legacyHeaders: false,
     message: 'Too many uploads from this IP, please try again after an hour',

@@ -2,7 +2,6 @@ import { Request, Response, NextFunction } from 'express';
 import jwt from 'jsonwebtoken';
 import dotenv from 'dotenv';
 import User, { IUser } from '../models/User';
-import { HttpError } from '../utils/HttpError';
 
 dotenv.config();
 
@@ -27,6 +26,11 @@ export default async function (req: AuthRequest, res: Response, next: NextFuncti
     req.user = await User.findById(decoded.user.id).select('-password');
     next();
   } catch (err) {
-    next(new HttpError(401, 'Token is not valid'));
+    // Treat invalid/stale tokens as anonymous access so public routes remain public.
+    // Private routes still reject because req.user is undefined.
+    if (req.cookies?.auth_token) {
+      res.clearCookie('auth_token');
+    }
+    next();
   }
 }

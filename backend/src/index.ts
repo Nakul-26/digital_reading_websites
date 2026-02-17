@@ -29,8 +29,6 @@ app.set('trust proxy', 1);
 // specific limiters add extra protection to sensitive endpoints.
 app.use('/api', apiLimiter);
 app.use('/api/auth', authLimiter);
-app.use('/api/works', uploadLimiter);
-app.use('/api/chapters', uploadLimiter);
 
 // --- MongoDB Client ---
 const uri = process.env.MONGO_URI;
@@ -220,6 +218,10 @@ app.post('/api/upload-multiple', uploadLimiter, (req: Request, res: Response, ne
     });
 });
 
+// Apply upload limiter only to write-heavy routes; keep read routes unrestricted by upload quotas.
+app.post('/api/works', uploadLimiter);
+app.post('/api/works/:workId/chapters', uploadLimiter);
+
 
 // --- Routes ---
 app.use('/api/auth', authRoutes);
@@ -231,6 +233,21 @@ app.use('/api/feedback', feedbackRoutes);
 app.get("/", (req, res) => {
   res.send("API is working");
 });
+
+if (!isProduction) {
+  app.get('/api/debug/ip', (req: Request, res: Response) => {
+    res.json({
+      ip: req.ip,
+      ips: req.ips,
+      trustProxy: app.get('trust proxy'),
+      headers: {
+        'x-forwarded-for': req.headers['x-forwarded-for'] || null,
+        'x-real-ip': req.headers['x-real-ip'] || null,
+        'cf-connecting-ip': req.headers['cf-connecting-ip'] || null,
+      },
+    });
+  });
+}
 
 // Error handling middleware
 app.use((err: Error, req: Request, res: Response, next: NextFunction) => {

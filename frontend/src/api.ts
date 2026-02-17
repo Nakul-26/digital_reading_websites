@@ -15,6 +15,33 @@ const csrfClient = axios.create({
 let csrfToken: string | null = null;
 let csrfTokenPromise: Promise<string> | null = null;
 
+const getPathname = (requestUrl: string): string => {
+  try {
+    return new URL(requestUrl, baseURL).pathname;
+  } catch {
+    return requestUrl;
+  }
+};
+
+const isPublic401Route = (method: string, pathname: string): boolean => {
+  if (method === 'get' && pathname === '/api/works') {
+    return true;
+  }
+  if (method === 'get' && /^\/api\/works\/[^/]+$/.test(pathname)) {
+    return true;
+  }
+  if (method === 'get' && /^\/api\/works\/[^/]+\/chapters$/.test(pathname)) {
+    return true;
+  }
+  if (method === 'get' && /^\/api\/chapters\/[^/]+$/.test(pathname)) {
+    return true;
+  }
+  if (method === 'post' && /^\/api\/chapters\/[^/]+\/view$/.test(pathname)) {
+    return true;
+  }
+  return false;
+};
+
 const getCsrfToken = async (): Promise<string> => {
   if (csrfToken) {
     return csrfToken;
@@ -56,11 +83,14 @@ api.interceptors.response.use(
       csrfToken = null;
     }
 
-    // If there's a response and it's a 401 Unauthorized error
-    const requestUrl = error.config?.url as string | undefined;
-    const isAuthProbe = !!requestUrl && requestUrl.includes('/api/auth/me');
+    // Redirect to login only for protected endpoint failures.
+    const requestUrl = (error.config?.url as string | undefined) || '';
+    const requestMethod = ((error.config?.method as string | undefined) || 'get').toLowerCase();
+    const requestPathname = getPathname(requestUrl);
+    const isAuthProbe = requestPathname === '/api/auth/me';
+    const isPublicRoute = isPublic401Route(requestMethod, requestPathname);
 
-    if (error.response && error.response.status === 401 && !isAuthProbe) {
+    if (error.response && error.response.status === 401 && !isAuthProbe && !isPublicRoute) {
       console.warn('401 Unauthorized: Redirecting to login...');
       // Redirect to the login page
       if (window.location.pathname !== '/login') {
