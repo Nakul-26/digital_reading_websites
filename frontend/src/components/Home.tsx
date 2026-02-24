@@ -12,6 +12,7 @@ import {
   Container,
 } from '@mui/material';
 import { api } from '../api';
+import { resolveImageUrl } from '../utils/imageUrl';
 
 interface IWork {
   _id: string;
@@ -109,9 +110,7 @@ const Home: React.FC = () => {
                       borderTopRightRadius: { xs: '16px', md: 0 },
                     }}
                     image={
-                      featuredWork.coverImageUrl
-                        ? `${apiUrl}/uploads/${featuredWork.coverImageUrl}`
-                        : 'https://via.placeholder.com/400x600'
+                      resolveImageUrl(featuredWork.coverImageUrl, apiUrl) || 'https://via.placeholder.com/400x600'
                     }
                     alt={featuredWork.title}
                   />
@@ -177,9 +176,7 @@ const Home: React.FC = () => {
                   component="img"
                   sx={{ height: 250, objectFit: 'cover', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}
                   image={
-                    work.coverImageUrl
-                      ? `${apiUrl}/uploads/${work.coverImageUrl}`
-                      : 'https://via.placeholder.com/200x300'
+                    resolveImageUrl(work.coverImageUrl, apiUrl) || 'https://via.placeholder.com/200x300'
                   }
                   alt={work.title}
                 />

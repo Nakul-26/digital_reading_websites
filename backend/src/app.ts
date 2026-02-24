@@ -1,13 +1,13 @@
 import express, { Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
-import { MongoClient, ServerApiVersion } from 'mongodb';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 import path from 'path';
 import multer from 'multer';
 import { randomUUID } from 'crypto';
 import csrf from 'csurf';
+import { v2 as cloudinary } from 'cloudinary';
 
 import authRoutes from './routes/auth';
 import worksRoutes from './routes/works';
@@ -24,6 +24,20 @@ const app = express();
 const isProduction = process.env.NODE_ENV === 'production';
 app.set('trust proxy', 1);
 
+const cloudinaryCloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const cloudinaryApiKey = process.env.CLOUDINARY_API_KEY;
+const cloudinaryApiSecret = process.env.CLOUDINARY_API_SECRET;
+
+if (!cloudinaryCloudName || !cloudinaryApiKey || !cloudinaryApiSecret) {
+  throw new Error('Cloudinary environment variables are not fully configured');
+}
+
+cloudinary.config({
+  cloud_name: cloudinaryCloudName,
+  api_key: cloudinaryApiKey,
+  api_secret: cloudinaryApiSecret,
+});
+
 // --- Rate Limiter ---
 app.use('/api', apiLimiter);
 app.use('/api/auth', authLimiter);
@@ -34,16 +48,7 @@ if (!uri) {
   throw new Error('MONGO_URI is not defined in environment variables');
 }
 
-const client = new MongoClient(uri, {
-  serverApi: {
-    version: ServerApiVersion.v1,
-    strict: true,
-    deprecationErrors: true,
-  },
-});
-
 let databaseConnectionPromise: Promise<void> | null = null;
-let mongoClientConnected = false;
 
 export const connectDatabase = async (): Promise<void> => {
   if (databaseConnectionPromise) {
@@ -59,13 +64,6 @@ export const connectDatabase = async (): Promise<void> => {
   }
 
   databaseConnectionPromise = (async () => {
-    if (!mongoClientConnected) {
-      await client.connect();
-      await client.db('admin').command({ ping: 1 });
-      console.log('Connected to MongoDB via MongoClient');
-      mongoClientConnected = true;
-    }
-
     if (mongoose.connection.readyState === 0) {
       await mongoose.connect(uri, mongooseOptions);
       console.log('Connected to MongoDB via Mongoose');
@@ -82,8 +80,6 @@ export const closeDatabaseConnections = async (): Promise<void> => {
   if (mongoose.connection.readyState !== 0) {
     await mongoose.connection.close(false);
   }
-  await client.close();
-  mongoClientConnected = false;
   databaseConnectionPromise = null;
 };
 
@@ -140,8 +136,6 @@ const csrfProtection = csrf({
   },
 });
 app.use(csrfProtection);
-app.use('/uploads', express.static(path.join(__dirname, '../uploads')));
-
 // Logging middleware
 app.use((req: Request, _res: Response, next: NextFunction) => {
   console.log(`Incoming request: ${req.method} ${req.url}`);
@@ -157,15 +151,6 @@ app.use((req: Request, _res: Response, next: NextFunction) => {
 });
 
 // --- File Upload ---
-const storage = multer.diskStorage({
-  destination: (_req, _file, cb) => {
-    cb(null, 'uploads/');
-  },
-  filename: (_req, file, cb) => {
-    cb(null, `${Date.now()}-${randomUUID()}${path.extname(file.originalname).toLowerCase()}`);
-  },
-});
-
 const allowedMimeTypes = new Set(['image/jpeg', 'image/png', 'image/webp', 'image/gif']);
 
 const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
@@ -177,7 +162,7 @@ const fileFilter: multer.Options['fileFilter'] = (_req, file, cb) => {
 };
 
 const upload = multer({
-  storage,
+  storage: multer.memoryStorage(),
   limits: {
     fileSize: 5 * 1024 * 1024,
     files: 10,
@@ -203,6 +188,32 @@ const handleUploadMiddlewareError = (err: unknown, next: NextFunction) => {
   return next(err as Error);
 };
 
+const uploadBufferToCloudinary = (file: Express.Multer.File): Promise<{ secureUrl: string; publicId: string }> =>
+  new Promise((resolve, reject) => {
+    const fileExtension = path.extname(file.originalname).toLowerCase() || '';
+    const publicId = `${Date.now()}-${randomUUID()}${fileExtension}`;
+    const uploadStream = cloudinary.uploader.upload_stream(
+      {
+        folder: 'novel-website',
+        public_id: publicId,
+        resource_type: 'image',
+      },
+      (error, result) => {
+        if (error || !result?.secure_url || !result.public_id) {
+          reject(error || new Error('Cloudinary upload failed'));
+          return;
+        }
+
+        resolve({
+          secureUrl: result.secure_url,
+          publicId: result.public_id,
+        });
+      }
+    );
+
+    uploadStream.end(file.buffer);
+  });
+
 app.post('/api/upload', uploadLimiter, (req: Request, res: Response, next: NextFunction) => {
   upload.single('file')(req, res, (err) => {
     handleUploadMiddlewareError(err, next);
@@ -214,10 +225,13 @@ app.post('/api/upload', uploadLimiter, (req: Request, res: Response, next: NextF
       return next(new HttpError(400, 'No file uploaded.'));
     }
 
-    return res.status(200).send({
-      message: 'File uploaded successfully',
-      filename: req.file.filename,
-    });
+    uploadBufferToCloudinary(req.file)
+      .then((uploadedFile) => res.status(200).send({
+        message: 'File uploaded successfully',
+        filename: uploadedFile.publicId,
+        url: uploadedFile.secureUrl,
+      }))
+      .catch((uploadError) => next(uploadError));
   });
 });
 
@@ -232,11 +246,17 @@ app.post('/api/upload-multiple', uploadLimiter, (req: Request, res: Response, ne
       return next(new HttpError(400, 'No files uploaded.'));
     }
 
-    const filenames = (req.files as Express.Multer.File[]).map((file) => file.filename);
-    return res.status(200).send({
-      message: 'Files uploaded successfully',
-      filenames,
-    });
+    Promise.all((req.files as Express.Multer.File[]).map((file) => uploadBufferToCloudinary(file)))
+      .then((uploadedFiles) => {
+        const filenames = uploadedFiles.map((file) => file.publicId);
+        const urls = uploadedFiles.map((file) => file.secureUrl);
+        res.status(200).send({
+          message: 'Files uploaded successfully',
+          filenames,
+          urls,
+        });
+      })
+      .catch((uploadError) => next(uploadError));
   });
 });
 
@@ -252,6 +272,23 @@ app.use('/api/feedback', feedbackRoutes);
 
 app.get('/', (_req, res) => {
   res.send('API is working');
+});
+
+app.get('/api/health', (_req: Request, res: Response) => {
+  const readyState = mongoose.connection.readyState;
+  const status = readyState === 1 ? 'ok' : 'degraded';
+  const stateMap: Record<number, string> = {
+    0: 'disconnected',
+    1: 'connected',
+    2: 'connecting',
+    3: 'disconnecting',
+  };
+
+  res.status(status === 'ok' ? 200 : 503).json({
+    status,
+    database: stateMap[readyState] || 'unknown',
+    timestamp: new Date().toISOString(),
+  });
 });
 
 if (!isProduction) {

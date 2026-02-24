@@ -71,7 +71,7 @@ const UploadWork: React.FC = () => {
             'Content-Type': 'multipart/form-data',
           },
         });
-        coverImageUrl = res.data.filename;
+        coverImageUrl = res.data.url || res.data.filename;
       } catch (err: unknown) {
         if (axios.isAxiosError(err)) {
           setErrorMessage(err.response?.data?.message || 'Cover image upload failed.');

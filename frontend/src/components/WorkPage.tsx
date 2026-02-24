@@ -25,6 +25,7 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { AuthContext } from '../AuthContext';
 import { api } from '../api';
+import { resolveImageUrl } from '../utils/imageUrl';
 
 interface IWork {
   _id: string;
@@ -141,7 +142,7 @@ const WorkPage: React.FC = () => {
                 objectFit: 'cover',
                 borderRadius: 2,
               }}
-              src={work.coverImageUrl ? `${apiUrl}/uploads/${work.coverImageUrl}` : 'https://via.placeholder.com/300x450'}
+              src={resolveImageUrl(work.coverImageUrl, apiUrl) || 'https://via.placeholder.com/300x450'}
               alt={work.title}
             />
           </Grid>

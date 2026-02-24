@@ -4,6 +4,7 @@ import { Container, Typography, Paper, Box, Stack, Button, TextField, Divider, A
 import { api } from '../api';
 import { AuthContext } from '../AuthContext';
 import { INPUT_LIMITS } from '../constants/inputLimits';
+import { resolveImageUrl } from '../utils/imageUrl';
 
 interface IChapter {
   _id: string;
@@ -174,7 +175,7 @@ const ChapterReader: React.FC = () => {
               <Box
                 key={index}
                 component="img"
-                src={`${apiUrl}/uploads/${imageUrl}`}
+                src={resolveImageUrl(imageUrl, apiUrl) || ''}
                 alt={`Page ${index + 1}`}
                 sx={{
                   display: 'block',

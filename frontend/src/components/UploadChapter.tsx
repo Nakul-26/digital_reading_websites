@@ -90,7 +90,7 @@ const UploadChapter: React.FC = () => {
             const res = await api.post('/api/upload-multiple', uploadedFiles, {
                 headers: { 'Content-Type': 'multipart/form-data' },
             });
-            chapterContent = res.data.filenames;
+            chapterContent = res.data.urls || res.data.filenames;
         } catch (err: unknown) {
             if (axios.isAxiosError(err)) {
               setErrorMessage(err.response?.data?.message || 'File upload failed.');
