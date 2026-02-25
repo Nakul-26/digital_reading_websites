@@ -13,6 +13,7 @@ import {
 } from '@mui/material';
 import { api } from '../api';
 import { resolveImageUrl } from '../utils/imageUrl';
+import { getRecentWorkIds } from '../utils/readingHistory';
 
 interface IWork {
   _id: string;
@@ -29,6 +30,7 @@ interface IWork {
 
 const Home: React.FC = () => {
   const [works, setWorks] = useState<IWork[]>([]);
+  const [recentWorkIds, setRecentWorkIds] = useState<string[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -48,6 +50,10 @@ const Home: React.FC = () => {
     fetchWorks();
   }, []);
 
+  useEffect(() => {
+    setRecentWorkIds(getRecentWorkIds());
+  }, []);
+
   if (loading) {
     return <Typography>Loading works...</Typography>;
   }
@@ -60,6 +66,9 @@ const Home: React.FC = () => {
   }
 
   const featuredWork = works.length > 0 ? works[0] : null;
+  const recentWorks = recentWorkIds
+    .map((workId) => works.find((work) => work._id === workId))
+    .filter((work): work is IWork => Boolean(work));
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
 
   return (
@@ -146,6 +155,60 @@ const Home: React.FC = () => {
             </CardActionArea>
           </Card>
         </Box>
+      )}
+
+      {/* Continue Reading */}
+      {recentWorks.length > 0 && (
+        <>
+          <Typography variant="h4" component="h2" gutterBottom sx={{ mt: 4, mb: 2 }}>
+            Continue Reading
+          </Typography>
+          <Grid container spacing={3}>
+            {recentWorks.map((work) => (
+              <Grid key={work._id} size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
+                <Card
+                  sx={{
+                    minWidth: 275,
+                    borderRadius: '16px',
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.1)',
+                    transition: 'box-shadow 0.3s ease-in-out, transform 0.3s ease-in-out',
+                    '&:hover': {
+                      boxShadow: '0 8px 16px rgba(0,0,0,0.2)',
+                      transform: 'scale(1.02)',
+                    },
+                  }}
+                >
+                  <CardActionArea
+                    component={RouterLink}
+                    to={`/works/${work._id}`}
+                    sx={{ borderRadius: '16px' }}
+                  >
+                    <CardMedia
+                      component="img"
+                      sx={{ height: 250, objectFit: 'cover', borderTopLeftRadius: '16px', borderTopRightRadius: '16px' }}
+                      image={
+                        resolveImageUrl(work.coverImageUrl, apiUrl) || 'https://via.placeholder.com/200x300'
+                      }
+                      alt={work.title}
+                    />
+                    <CardContent sx={{ p: 2 }}>
+                      <Typography gutterBottom variant="h6" component="div" noWrap>
+                        {work.title}
+                      </Typography>
+                      <Typography variant="body2" color="text.secondary">
+                        by {work.author.username}
+                      </Typography>
+                      <Box sx={{ mt: 2, display: 'flex', gap: 1, flexWrap: 'wrap' }}>
+                        <Chip label={work.status} size="small" />
+                        <Chip label={`${work.views || 0} views`} size="small" variant="outlined" />
+                      </Box>
+                    </CardContent>
+                  </CardActionArea>
+                </Card>
+              </Grid>
+            ))}
+          </Grid>
+        </>
       )}
 
       {/* All Works */}

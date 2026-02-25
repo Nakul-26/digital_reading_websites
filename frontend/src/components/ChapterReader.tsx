@@ -5,6 +5,7 @@ import { api } from '../api';
 import { AuthContext } from '../AuthContext';
 import { INPUT_LIMITS } from '../constants/inputLimits';
 import { resolveImageUrl } from '../utils/imageUrl';
+import { markChapterAsRead, markWorkAsRecent, setLastReadChapter } from '../utils/readingHistory';
 
 interface IChapter {
   _id: string;
@@ -12,6 +13,7 @@ interface IChapter {
   title: string;
   content: string | string[];
   work: {
+    _id: string;
     type: 'manga' | 'novel' | 'comic';
   };
   views: number;
@@ -65,6 +67,21 @@ const ChapterReader: React.FC = () => {
     };
     fetchChapter();
   }, [id, auth?.user?._id]);
+
+  useEffect(() => {
+    if (!chapter) {
+      return;
+    }
+
+    const workId = chapter.work?._id;
+    if (!workId) {
+      return;
+    }
+
+    markChapterAsRead(workId, chapter._id);
+    setLastReadChapter(workId, chapter._id);
+    markWorkAsRecent(workId);
+  }, [chapter]);
 
   if (loading) {
     return <Typography>Loading chapter...</Typography>;

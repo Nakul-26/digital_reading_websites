@@ -26,6 +26,7 @@ import DeleteIcon from '@mui/icons-material/Delete';
 import { AuthContext } from '../AuthContext';
 import { api } from '../api';
 import { resolveImageUrl } from '../utils/imageUrl';
+import { getReadChapters, getReadingProgress } from '../utils/readingHistory';
 
 interface IWork {
   _id: string;
@@ -61,6 +62,8 @@ const WorkPage: React.FC = () => {
   const [error, setError] = useState<string | null>(null); // New error state
   const [open, setOpen] = useState(false);
   const [selectedChapter, setSelectedChapter] = useState<IChapter | null>(null);
+  const [readChapterIds, setReadChapterIds] = useState<string[]>([]);
+  const [lastReadChapterId, setLastReadChapterId] = useState<string | null>(null);
   const authContext = useContext(AuthContext);
 
   useEffect(() => {
@@ -82,6 +85,18 @@ const WorkPage: React.FC = () => {
       }
     };
     fetchData();
+  }, [id]);
+
+  useEffect(() => {
+    if (!id) {
+      return;
+    }
+
+    const readChaptersByWork = getReadChapters();
+    setReadChapterIds(readChaptersByWork[id] || []);
+
+    const progressByWork = getReadingProgress();
+    setLastReadChapterId(progressByWork[id] || null);
   }, [id]);
 
   const handleClickOpen = (chapter: IChapter) => {
@@ -127,6 +142,9 @@ const WorkPage: React.FC = () => {
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:3000';
   const moderationStatus = work.moderationStatus || (work.isPublished ? 'published' : 'pending');
+  const lastReadChapter = lastReadChapterId
+    ? chapters.find((chapter) => chapter._id === lastReadChapterId)
+    : null;
 
   return (
     <Container sx={{ py: 4 }}>
@@ -185,6 +203,16 @@ const WorkPage: React.FC = () => {
                 Upload Chapter
               </Button>
             )}
+            {lastReadChapter && (
+              <Button
+                variant="contained"
+                component={RouterLink}
+                to={`/chapters/${lastReadChapter._id}`}
+                sx={{ mt: 3 }}
+              >
+                Continue Reading (Ch. {lastReadChapter.chapterNumber})
+              </Button>
+            )}
           </Grid>
         </Grid>
       </Paper>
@@ -201,7 +229,9 @@ const WorkPage: React.FC = () => {
                 No chapters published yet.
               </Typography>
             ) : (
-              chapters.map((chapter, index) => (
+              chapters.map((chapter, index) => {
+                const isRead = readChapterIds.includes(chapter._id);
+                return (
                 <React.Fragment key={chapter._id}>
                   <ListItem
                     disablePadding
@@ -224,6 +254,7 @@ const WorkPage: React.FC = () => {
                       sx={{
                         px: { xs: 2, md: 3 },
                         py: 1.5,
+                        opacity: isRead ? 0.55 : 1,
                         '&:hover': {
                           backgroundColor: 'action.hover',
                         },
@@ -231,14 +262,15 @@ const WorkPage: React.FC = () => {
                     >
                       <ListItemText
                         primary={chapter.title}
-                        secondary={`Chapter ${chapter.chapterNumber} | ${chapter.views || 0} views`}
+                        secondary={`Chapter ${chapter.chapterNumber} | ${chapter.views || 0} views${isRead ? ' | Read' : ''}`}
                       />
                     </ListItemButton>
                   </ListItem>
 
                   {index < chapters.length - 1 && <Divider />}
                 </React.Fragment>
-              ))
+                );
+              })
             )}
           </List>
         </Paper>

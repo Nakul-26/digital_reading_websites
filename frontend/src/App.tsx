@@ -1,5 +1,5 @@
 import React, { useState, useMemo } from 'react';
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
 import {
   CssBaseline,
   Box,
@@ -65,6 +65,7 @@ const App: React.FC = () => {
                 <Route path="/login" element={<Login />} />
                 <Route path="/register" element={<Register />} />
               </Route>
+              <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Container>
           <Footer />
