@@ -17,8 +17,8 @@ import {
   Divider,
 } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
-import Brightness4Icon from '@mui/icons-material/Brightness4';
-import Brightness7Icon from '@mui/icons-material/Brightness7';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import LightModeIcon from '@mui/icons-material/LightMode';
 import MenuIcon from '@mui/icons-material/Menu';
 import { ColorModeContext } from '../ColorModeContext';
 import BookIcon from '@mui/icons-material/Book';
@@ -165,9 +165,25 @@ const Navbar = () => {
               )}
             </Stack>
           )}
-          <IconButton sx={{ ml: 1 }} onClick={colorMode.toggleColorMode} color="inherit">
-            {theme.palette.mode === 'dark' ? <Brightness7Icon /> : <Brightness4Icon />}
-          </IconButton>
+          <Button
+            onClick={colorMode.toggleColorMode}
+            color="inherit"
+            variant="outlined"
+            size="small"
+            startIcon={theme.palette.mode === 'dark' ? <DarkModeIcon /> : <LightModeIcon />}
+            aria-label={`Switch to ${theme.palette.mode === 'dark' ? 'light' : 'dark'} mode`}
+            sx={{
+              ml: 1,
+              minWidth: 86,
+              borderColor: 'currentColor',
+              borderRadius: 999,
+              px: 1.5,
+              textTransform: 'none',
+              whiteSpace: 'nowrap',
+            }}
+          >
+            {theme.palette.mode === 'dark' ? 'Dark' : 'Light'}
+          </Button>
         </Toolbar>
       </AppBar>
       <Drawer anchor="right" open={drawerOpen} onClose={handleDrawerToggle}>

@@ -20,12 +20,6 @@ import EditIcon from '@mui/icons-material/Edit';
 import DeleteIcon from '@mui/icons-material/Delete';
 import { api, getAdminFeedback } from '../api';
 
-interface IUser {
-  _id: string;
-  username: string;
-  role: 'user' | 'admin';
-}
-
 interface IWork {
   _id: string;
   title: string;
@@ -46,11 +40,8 @@ interface IFeedback {
 }
 
 const AdminDashboard: React.FC = () => {
-  const [users, setUsers] = useState<IUser[]>([]);
   const [works, setWorks] = useState<IWork[]>([]);
   const [feedback, setFeedback] = useState<IFeedback[]>([]);
-  const [loadingUsers, setLoadingUsers] = useState(true); // New loading state for users
-  const [errorUsers, setErrorUsers] = useState<string | null>(null); // New error state for users
   const [loadingWorks, setLoadingWorks] = useState(true); // New loading state for works
   const [errorWorks, setErrorWorks] = useState<string | null>(null); // New error state for works
   const [loadingFeedback, setLoadingFeedback] = useState(true); // New loading state for feedback
@@ -60,21 +51,7 @@ const AdminDashboard: React.FC = () => {
   const [loadingModerationId, setLoadingModerationId] = useState<string | null>(null);
   const [errorModeration, setErrorModeration] = useState<string | null>(null);
 
-
   useEffect(() => {
-    const fetchUsers = async () => {
-      setLoadingUsers(true);
-      setErrorUsers(null);
-      try {
-        const res = await api.get('/api/admin/users');
-        setUsers(res.data);
-      } catch (err: any) {
-        console.error(err);
-        setErrorUsers(err.response?.data?.message || 'Failed to load users.');
-      } finally {
-        setLoadingUsers(false);
-      }
-    };
     const fetchWorks = async () => {
       setLoadingWorks(true);
       setErrorWorks(null);
@@ -101,7 +78,6 @@ const AdminDashboard: React.FC = () => {
         setLoadingFeedback(false);
       }
     };
-    fetchUsers();
     fetchWorks();
     fetchFeedback();
   }, []);
@@ -157,40 +133,6 @@ const AdminDashboard: React.FC = () => {
         <Typography color="error" variant="body2" sx={{ mb: 2 }}>
           {errorModeration}
         </Typography>
-      )}
-
-      <Typography variant="h5" component="h2" gutterBottom>
-        Users
-      </Typography>
-      {loadingUsers ? (
-        <Box display="flex" justifyContent="center" my={4}>
-          <CircularProgress />
-        </Box>
-      ) : errorUsers ? (
-        <Typography color="error">Error: {errorUsers}</Typography>
-      ) : users.length === 0 ? (
-        <Typography>No users found.</Typography>
-      ) : (
-        <TableContainer component={Paper} sx={{ mb: 4 }}>
-          <Table>
-            <TableHead>
-              <TableRow>
-                <TableCell>ID</TableCell>
-                <TableCell>Username</TableCell>
-                <TableCell>Role</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {users.map((user) => (
-                <TableRow key={user._id}>
-                  <TableCell>{user._id}</TableCell>
-                  <TableCell>{user.username}</TableCell>
-                  <TableCell>{user.role}</TableCell>
-                </TableRow>
-              ))}
-            </TableBody>
-          </Table>
-        </TableContainer>
       )}
 
       <Typography variant="h5" component="h2" gutterBottom>
