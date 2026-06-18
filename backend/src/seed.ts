@@ -45,6 +45,8 @@ const seedDB = async () => {
       type: 'novel',
       description: 'A sci-fi epic about the last of humanity facing a cosmic threat.',
       author: sampleUser._id,
+      coverImageUrl: 'https://images.unsplash.com/photo-1451187580459-43490279c0fa?q=80&w=1000&auto=format&fit=crop',
+      moderationStatus: 'published',
       isPublished: true, // Mark novel as published
     });
     await novel.save();
@@ -74,10 +76,50 @@ const seedDB = async () => {
       type: 'manga',
       description: 'In a feudal world, a cursed samurai seeks a way to break his immortality.',
       author: sampleUser._id,
+      coverImageUrl: 'https://images.unsplash.com/photo-1599408162165-401246c5c740?q=80&w=1000&auto=format&fit=crop',
+      moderationStatus: 'published',
       isPublished: true, // Mark manga as published
     });
     await manga.save();
     console.log('Created sample manga.');
+
+    // Create more diverse works
+    const novel2 = new Work({
+      title: 'Neon Shadows',
+      type: 'novel',
+      description: 'A cyberpunk noir story set in the rain-slicked streets of New Kyoto.',
+      author: sampleUser._id,
+      coverImageUrl: 'https://images.unsplash.com/photo-1605810230434-7631ac76ec81?q=80&w=1000&auto=format&fit=crop',
+      genres: ['Cyberpunk', 'Noir', 'Mystery'],
+      moderationStatus: 'published',
+      isPublished: true,
+    });
+    await novel2.save();
+
+    const comic1 = new Work({
+      title: 'The Last Guardian',
+      type: 'comic',
+      description: 'The last survivor of an ancient order protects a world that has forgotten magic.',
+      author: sampleUser._id,
+      coverImageUrl: 'https://images.unsplash.com/photo-1534447677768-be436bb09401?q=80&w=1000&auto=format&fit=crop',
+      genres: ['Fantasy', 'Action', 'Adventure'],
+      moderationStatus: 'published',
+      isPublished: true,
+    });
+    await comic1.save();
+
+    const manga2 = new Work({
+      title: 'Slice of Eternity',
+      type: 'manga',
+      description: 'A heartwarming story about a cafe that serves memories to the departed.',
+      author: sampleUser._id,
+      coverImageUrl: 'https://images.unsplash.com/photo-1514432324607-a09d9b4aefdd?q=80&w=1000&auto=format&fit=crop',
+      genres: ['Slice of Life', 'Supernatural', 'Drama'],
+      moderationStatus: 'published',
+      isPublished: true,
+    });
+    await manga2.save();
+    console.log('Created additional sample works.');
 
     // Create chapters for the manga
     const mangaChapter1 = new Chapter({

@@ -1,157 +1,194 @@
 # Novel Website
 
-This is a full-stack web application designed for authors to upload and manage their written works, and for readers to discover and read novels online. The platform provides user authentication, chapter management, and a responsive user interface.
+A full-stack web application for authors to publish and manage their novels, and for readers to discover and enjoy stories. Built with a focus on security, performance, and high-quality visual presentation.
+
+## Live Demo
+
+**Link:** [https://digital-reading-websites.pages.dev/](https://digital-reading-websites.pages.dev/)
+
+### Demo Credentials
+Use these accounts to explore the platform:
+
+| Role | Username | Password |
+| :--- | :--- | :--- |
+| **Regular User** | `testuser` | `password123` |
+| **Administrator** | `admin` | `adminpassword` |
 
 ## Features
 
-**Backend (API)**
-*   User authentication (registration, login, logout) with JWT.
-*   Secure password handling with `bcryptjs`.
-*   CRUD operations for works (novels) and chapters.
-*   File upload functionality for chapter content (if applicable, details to be confirmed).
-*   API rate limiting for security.
-*   Database integration with MongoDB using Mongoose.
-*   Type-safe development with TypeScript.
+### Backend (API)
+*   **Security First**: 
+    *   CSRF protection using `csurf`.
+    *   NoSQL injection sanitization.
+    *   Secure security headers (Helmet-style).
+    *   CORS configuration with origin validation.
+    *   API rate limiting (General API, Auth, and File Uploads).
+*   **Authentication & Authorization**:
+    *   JWT-based authentication with secure HTTP-only cookie storage.
+    *   Role-based access control (User, Admin).
+    *   Secure password hashing with `bcryptjs`.
+*   **Content Management**:
+    *   CRUD operations for Works (novels, manga, comics) and Chapters.
+    *   Cloudinary integration for secure image uploads (covers).
+    *   Feedback system for user engagement.
+*   **DevOps & Reliability**:
+    *   Health check endpoint (`/api/health`).
+    *   Database connection pooling and auto-reconnect.
+    *   Comprehensive request logging.
+    *   Type-safe development with TypeScript.
 
-**Frontend (Client)**
-*   Responsive user interface built with React.
-*   Modern and intuitive design using Material UI.
-*   Client-side routing with React Router DOM.
-*   User authentication flows.
-*   Pages for displaying works, reading chapters, and managing author content.
-*   API integration using Axios.
-*   Type-safe development with TypeScript.
+### Frontend (Client)
+*   **Modern UI/UX**:
+    *   Responsive design using **Material UI (MUI)**.
+    *   **Dark/Light Mode** support with user preference persistence.
+*   **Interactive Features**:
+    *   Chapter reader with immersive reading experience.
+    *   Author dashboard ("My Works") for content management.
+    *   Admin dashboard for site and user management.
+    *   Feedback submission and viewing.
+*   **Smooth Navigation**:
+    *   Declarative routing with **React Router 7**.
+    *   Protected and Guest routes for secure access control.
+    *   API integration with **Axios** and automated CSRF handling.
 
 ## Technologies Used
 
 ### Backend
-*   **Node.js**: Runtime environment for executing JavaScript and TypeScript (via transpilation) on the server.
-*   **Express.js**: Web application framework.
-*   **TypeScript**: Statically typed superset of JavaScript.
-*   **MongoDB**: NoSQL database.
-*   **Mongoose**: MongoDB object data modeling (ODM).
-*   **bcryptjs**: Password hashing library.
-*   **jsonwebtoken**: JSON Web Token implementation for authentication.
-*   **multer**: Middleware for handling `multipart/form-data`, primarily for file uploads.
-*   **express-rate-limit**: Basic rate-limiting middleware.
-*   **dotenv**: Loads environment variables from a `.env` file.
-*   **nodemon**: Utility that monitors for changes in your source and automatically restarts your server.
-*   **tsx**: Seamlessly runs TypeScript files directly in Node.js.
+*   **Framework**: Express.js (v5+)
+*   **Runtime**: Node.js (v20+)
+*   **Language**: TypeScript
+*   **Database**: MongoDB (Mongoose ODM)
+*   **File Storage**: Cloudinary (via Multer)
+*   **Security**: jsonwebtoken, bcryptjs, csurf, express-rate-limit, cookie-parser
 
 ### Frontend
-*   **React**: JavaScript library for building user interfaces.
-*   **Material UI**: React components for faster and easier web development.
-*   **Axios**: Promise-based HTTP client.
-*   **React Router DOM**: Declarative routing for React.
-*   **TypeScript**: Statically typed superset of JavaScript.
-*   **Vite**: Next Generation Frontend Tooling.
-*   **ESLint**: Pluggable JavaScript linter.
+*   **Framework**: React 19
+*   **Build Tool**: Vite
+*   **Styling**: Material UI (MUI)
+*   **Routing**: React Router 7
+*   **Language**: TypeScript
 
 ## Setup and Installation
 
 ### Prerequisites
-*   Node.js (LTS version recommended)
+*   Node.js (LTS version)
 *   npm or yarn
-*   MongoDB instance (local or cloud-hosted)
+*   Git
+*   MongoDB (Local or Atlas)
+*   Cloudinary Account (for image uploads)
 
-### 1. Clone the repository
+### 1. Clone the Repository
 ```bash
 git clone https://github.com/your-username/novel-website.git
 cd novel-website
 ```
 
 ### 2. Backend Setup
-
 Navigate to the `backend` directory:
 ```bash
 cd backend
-```
-
-Install dependencies:
-```bash
 npm install
-# or
-yarn install
 ```
 
-Create a `.env` file in the `backend` directory with the following content:
-```
+Create a `.env` file in the `backend` directory:
+```env
 PORT=5000
 MONGO_URI=your_mongodb_connection_string
+MONGO_DB_NAME=novel-website
 JWT_SECRET=your_jwt_secret
+CORS_ORIGIN=http://localhost:5173
+NODE_ENV=development
+
+# Cloudinary Configuration
+CLOUDINARY_CLOUD_NAME=your_cloud_name
+CLOUDINARY_API_KEY=your_api_key
+CLOUDINARY_API_SECRET=your_api_secret
 ```
-Replace `your_mongodb_connection_string` with your MongoDB connection string (e.g., `mongodb://localhost:27017/novel-website`) and `your_jwt_secret` with a strong, random string.
 
 ### 3. Frontend Setup
-
-Navigate to the `frontend` directory:
+Navigate to the `frontend` directory (from the project root):
 ```bash
 cd ../frontend
-```
-
-Install dependencies:
-```bash
 npm install
-# or
-yarn install
 ```
 
-Create a `.env` file in the `frontend` directory with the following content:
+Create a `.env` file in the `frontend` directory:
+```env
+VITE_API_URL=http://localhost:5000
 ```
-VITE_API_BASE_URL=http://localhost:5000/api
-```
-Adjust the `VITE_API_BASE_URL` if your backend runs on a different port or host.
 
 ## Running the Application
 
-### 1. Start the Backend
-
-Navigate back to the `backend` directory:
+### Development Mode
+**Backend:**
 ```bash
-cd backend
-```
-
-Start the backend server in development mode:
-```bash
+# From the backend directory
 npm run dev
 ```
-The backend API will be available at `http://localhost:5000/api` (or your configured port).
 
-To build and start the backend in production mode:
+**Frontend:**
 ```bash
+# From the frontend directory
+npm run dev
+```
+
+### Production Build
+**Backend:**
+```bash
+# From the backend directory
 npm run build
 npm start
 ```
 
-### 2. Start the Frontend
-
-Navigate to the `frontend` directory:
+**Frontend:**
 ```bash
-cd ../frontend
+# From the frontend directory
+npm run build
+npm run preview
 ```
-
-Start the frontend development server:
-```bash
-npm run dev
-```
-The frontend application will typically open in your browser at `http://localhost:5173` (or another available port).
 
 ## Available Scripts
 
-### Backend (`backend/package.json`)
-*   `npm run build`: Compiles TypeScript to JavaScript.
-*   `npm start`: Starts the compiled Node.js server.
-*   `npm run dev`: Starts the Node.js server with `nodemon` for development (auto-restarts on file changes).
-*   `npm run seed`: (If applicable) Runs database seeding scripts.
+### Backend
+*   `npm run dev`: Starts the development server with auto-reload (using `tsx` and `nodemon`).
+*   `npm run build`: Compiles TypeScript to JavaScript in `dist/`.
+*   `npm start`: Runs the production server from `dist/`.
+*   `npm run seed`: Resets and seeds the database with initial sample data.
+*   `npm run works:images`: Updates existing works with high-quality placeholder images.
+*   `npm run users:list`: Lists all registered users in the console.
+*   `npm run users:password`: Changes a user's password via CLI.
 
-### Frontend (`frontend/package.json`)
+### Frontend
 *   `npm run dev`: Starts the Vite development server.
-*   `npm run build`: Builds the project for production.
-*   `npm run lint`: Lints the project files.
-*   `npm run preview`: Serves the production build locally.
+*   `npm run build`: Builds the application for production.
+*   `npm run lint`: Runs ESLint for code quality checks.
+
+## Screenshots
+
+### Admin Dashboard
+![admin dashboard](docs/screenshots/image.png)
+
+### User Management
+![manage users](docs/screenshots/image-1.png)
+
+### Add/Edit Work
+![add work page](docs/screenshots/image-2.png)
+
+### Login Page (Dark Mode)
+![login page](docs/screenshots/image-3.png)
+
+### Login Page (Light Mode)
+![light mode login page](docs/screenshots/image-4.png)
+
+### Home Page
+![home page](docs/screenshots/image-5.png)
 
 ## Contributing
-Contributions are welcome! Please feel free to open issues or submit pull requests.
+1.  Fork the project.
+2.  Create your feature branch (`git checkout -b feature/AmazingFeature`).
+3.  Commit your changes (`git commit -m 'Add some AmazingFeature'`).
+4.  Push to the branch (`git push origin feature/AmazingFeature`).
+5.  Open a Pull Request.
 
 ## License
-[Specify your license here, e.g., MIT, Apache 2.0, etc.]
+Distributed under the ISC License.
