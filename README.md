@@ -14,6 +14,26 @@ Use these accounts to explore the platform:
 | **Regular User** | `testuser` | `password123` |
 | **Administrator** | `admin` | `adminpassword` |
 
+## Screenshots
+
+### Home Page
+![home page](docs/screenshots/image-5.png)
+
+### Admin Dashboard
+![admin dashboard](docs/screenshots/image.png)
+
+### User Management
+![manage users](docs/screenshots/image-1.png)
+
+### Add/Edit Work
+![add work page](docs/screenshots/image-2.png)
+
+### Login Page (Dark Mode)
+![login page](docs/screenshots/image-3.png)
+
+### Login Page (Light Mode)
+![light mode login page](docs/screenshots/image-4.png)
+
 ## Features
 
 ### Backend (API)
@@ -162,26 +182,6 @@ npm run preview
 *   `npm run dev`: Starts the Vite development server.
 *   `npm run build`: Builds the application for production.
 *   `npm run lint`: Runs ESLint for code quality checks.
-
-## Screenshots
-
-### Admin Dashboard
-![admin dashboard](docs/screenshots/image.png)
-
-### User Management
-![manage users](docs/screenshots/image-1.png)
-
-### Add/Edit Work
-![add work page](docs/screenshots/image-2.png)
-
-### Login Page (Dark Mode)
-![login page](docs/screenshots/image-3.png)
-
-### Login Page (Light Mode)
-![light mode login page](docs/screenshots/image-4.png)
-
-### Home Page
-![home page](docs/screenshots/image-5.png)
 
 ## Contributing
 1.  Fork the project.
